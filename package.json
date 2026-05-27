@@ -1,0 +1,29 @@
+{
+  "name": "serpapi-byline",
+  "version": "1.0.0",
+  "description": "Find and save your articles from across the web",
+  "keywords": [
+    "serpapi"
+  ],
+  "homepage": "https://github.com/serpapi/byline#readme",
+  "bugs": {
+    "url": "https://github.com/serpapi/byline/issues"
+  },
+  "bin": {
+    "byline": "src/cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/serpapi/byline.git"
+  },
+  "license": "MIT",
+  "author": "SerpApi <contact@serpapi.com> (https://serpapi.com/)",
+  "type": "module",
+  "main": "src/cli.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=26.0.0"
+  }
+}
