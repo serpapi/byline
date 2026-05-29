@@ -25,5 +25,8 @@
   },
   "engines": {
     "node": ">=26.0.0"
+  },
+  "dependencies": {
+    "xml-js": "1.6.11"
   }
 }
