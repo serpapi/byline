@@ -2,10 +2,13 @@
 
 import { machine, type, release } from "node:os";
 import fs from "node:fs/promises";
+import * as readline from 'node:readline/promises';
+import { stdin, stdout } from 'node:process';
 import path from "node:path";
 import convert from "xml-js";
-import { getAccountInfo } from "./main.js";
+import { getAccountInfo, getSearchResults } from "./main.js";
 
+const rl = readline.createInterface({ input: stdin, output: stdout });
 let globalData = {};
 
 /**
@@ -26,6 +29,16 @@ function getArgs() {
         }
     }
     return result;
+}
+
+/**
+ * Prompt the user for text input using the active readline interface.
+ * @param {String} query The question to display in the CLI.
+ * @returns {String} The response, with any surrounding quotation marks ('' and "") removed.
+ */
+async function askUser(query) {
+    const response = await rl.question(query + " ");
+    return response.replace(/^(['"])(.*)\1$/, '$2');
 }
 
 /**
@@ -69,13 +82,29 @@ async function main() {
         fileHandler = await fs.open(path.resolve(filePath), "r+");
         const fileContents = await fileHandler.readFile({ encoding: 'utf8' });
         // Parse the file
-        globalData = convert.xml2js(fileContents, {compact: true});
+        globalData = convert.xml2js(fileContents, { compact: true });
         console.log(`Opened data file: ${filePath}\n`);
     } catch (e) {
         console.log(`There was an error loading the data file:\n${e}\n`);
         process.exit(1);
     }
-    // console.log(globalData["html"])
+    const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/"`;
+    const data = await getSearchResults(args["api"], searchQuery);
+    const resultCount = data["search_information"]["total_results"]
+    console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
+    // Exit
+    process.exit();
 }
 
-main();
+// Listen for termination signals
+const gracefulShutdown = function () {
+    rl.close();
+    process.exit(0);
+};
+
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);
+
+// Start main process
+await main();
+gracefulShutdown();
