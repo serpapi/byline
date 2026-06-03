@@ -1,7 +1,7 @@
 // Functions shared across CLI and web frontend
 
 // Blank CSV file template
-const csvTemplate = `"Website","Title","Date","Link","Snippet"`;
+const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","Snippet"`;
 // Settings to use for parsing CSV files
 const papaParseOptions = {
     quotes: true,
@@ -67,13 +67,21 @@ async function getSearchResults(settings) {
  * @returns {object} Object for Papa Parse data, representing a row in the CSV export.
  */
 function writeAsFormatted(searchResult) {
-    return {
+    const response = {
         "Website": (searchResult?.source || new URL(searchResult?.link).hostname),
         "Title": (searchResult?.title || "Unknown Title"),
-        "Date": (searchResult?.date || "Unknown Date"),
         "Link": searchResult.link,
         "Snippet": (searchResult?.snippet || "No snippet")
     }
+    // Create formatted date strings
+    if (searchResult?.date) {
+        const date = new Date(searchResult.date);
+        // Add international date format for best Excel compatibility, like "2023-10-27"
+        response["Date (Formatted)"] = new Intl.DateTimeFormat('en-CA').format(date);
+        // Add ISO 8601 date format for parsing with other tools, like "2023-10-27T14:30:00.000Z"
+        response["Date (ISO)"] = date.toISOString();
+    }
+    return response;
 }
 
 export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions }

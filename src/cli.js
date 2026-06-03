@@ -49,6 +49,16 @@ function showHelp() {
     console.log("Not implemented yet!")
 }
 
+/**
+ * Writes a Papa Parse data object as a CSV file, replacing the contents of the file currently at the path.
+ * @param {string} filePath The path to the file, already processed with path.resolve()
+ * @param {object} obj The Papa Parse data object.
+ */
+async function writeToCsv(filePath, obj) {
+    const csvExport = Papa.unparse(obj, papaParseOptions)
+    await fs.writeFile(path.resolve(filePath), csvExport);
+}
+
 async function main() {
     const args = getArgs();
     // Print help if requested
@@ -112,25 +122,17 @@ async function main() {
     // TODO: Exit early if account doesn't have enough credits for estimated search
     console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
     const answer = await askUser(`Type "start" to start the search:`);
-    if (answer === "start") {
-        // Write first page to CSV
-        for (const result in initData["organic_results"]) {
-            const formattedRow = writeAsFormatted(initData["organic_results"][result]);
-            globalData.data.push(formattedRow);
-        }
-        // TODO: Continue through all paginations, don't add URLs that are already present in the object
-        // Write new CSV file
-        try {
-            const csvExport = Papa.unparse(globalData, papaParseOptions)
-            await fs.writeFile(path.resolve(filePath), csvExport);
-            console.log(`Saved to file: ${path.resolve(filePath)}`);
-        } catch (e) {
-            console.log(`There was an error saving the data file:\n${e}\n`);
-            process.exit(1);
-        }
-    } else {
+    if (answer != "start") {
         console.log("Search cancelled.");
+        process.exit();
     }
+    // Write first page to CSV
+    for (const result in initData["organic_results"]) {
+        const formattedRow = writeAsFormatted(initData["organic_results"][result]);
+        globalData.data.push(formattedRow);
+    }
+    await writeToCsv(filePath, globalData);
+    // TODO: Continue through all paginations, don't add URLs that are already present in the object
     // Exit
     process.exit();
 }
