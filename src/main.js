@@ -1,7 +1,5 @@
 // Functions shared across CLI and web frontend
 
-import { settings } from "node:cluster";
-
 // Blank CSV file template
 const csvTemplate = `"Website","Title","Date","Link","Snippet"`;
 // Settings to use for parsing CSV files
