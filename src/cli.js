@@ -78,18 +78,26 @@ async function main() {
         filePath = path.resolve("data.csv");
     }
     // Open the file
-    // TODO: Handle creation of blank file if no file exists at the path
     try {
-        let fileContents = await fs.readFile(filePath, { encoding: "utf8" });
-        // Create header row if it's not present (e.g. the file is empty)
-        if (fileContents === "") {
-            fileContents = csvTemplate.toString();
-            console.log(fileContents)
+        let fileContents;
+        try {
+            fileContents = await fs.readFile(filePath, { encoding: "utf8" });
+            // Create header rows if the file is empty
+            fileContents = (fileContents || csvTemplate.toString());
+        } catch (err) {
+            if (err.code === "ENOENT") {
+                await fs.writeFile(filePath, csvTemplate.toString());
+                fileContents = csvTemplate.toString();
+            } else {
+                console.log(`Error accessing data file: ${e}`);
+                process.exit(1);
+            }
         }
         // Parse file
         globalData = Papa.parse(fileContents, papaParseOptions);
         console.log(`Opened data file with ${globalData.data.length} entries: ${filePath}\n`);
     } catch (e) {
+        console.log(e)
         console.log(`There was an error loading the data file:\n${e}\n`);
         process.exit(1);
     }
@@ -100,14 +108,15 @@ async function main() {
         apiKey: args["api"],
         q: searchQuery
     });
-    const resultCount = initData["search_information"]["total_results"]
+    const resultCount = initData["search_information"]["total_results"];
     // TODO: Exit early if account doesn't have enough credits for estimated search
     console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
     const answer = await askUser(`Type "start" to start the search:`);
     if (answer === "start") {
         // Write first page to CSV
         for (const result in initData["organic_results"]) {
-            globalData.data.push(writeAsFormatted(initData["organic_results"][result]))
+            const formattedRow = writeAsFormatted(initData["organic_results"][result]);
+            globalData.data.push(formattedRow);
         }
         // TODO: Continue through all paginations, don't add URLs that are already present in the object
         // Write new CSV file
@@ -120,7 +129,7 @@ async function main() {
             process.exit(1);
         }
     } else {
-        console.log("Search cancelled.")
+        console.log("Search cancelled.");
     }
     // Exit
     process.exit();
