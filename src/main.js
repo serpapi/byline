@@ -1,7 +1,7 @@
 // Functions shared across CLI and web frontend
 
 // Blank CSV file template
-const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","Snippet"`;
+const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","Snippet","Language"`;
 // Settings to use for parsing CSV files
 const papaParseOptions = {
     quotes: true,
@@ -67,9 +67,10 @@ async function getSearchResults(settings) {
 function writeAsFormatted(searchResult) {
     const response = {
         "Website": (searchResult?.source || new URL(searchResult?.link).hostname),
-        "Title": (searchResult?.title || "Unknown Title"),
+        "Title": searchResult.title,
         "Link": searchResult.link,
-        "Snippet": (searchResult?.snippet || "No snippet")
+        "Snippet": (searchResult?.snippet || ""),
+        "Language": (searchResult?.about_this_result?.languages?.toString() || "")
     }
     // Create formatted date strings
     if (searchResult?.date) {
