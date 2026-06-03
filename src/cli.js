@@ -113,7 +113,7 @@ async function main() {
     }
     // TODO: Make the URL filters user-customizable
     const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/" -inurl:"/category/"`;
-    console.log(`Searching Google with query: ${searchQuery}`);
+    console.log(`Searching Google with query: ${searchQuery}\n`);
     let searchResponse = await getSearchResults({
         apiKey: args["api"],
         q: searchQuery

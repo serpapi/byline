@@ -1,8 +1,12 @@
 # byline
+
 Find and save your articles from across the web.
+
+**This is still early in development!**
 
 ### Usage
 
 ```
-node src/cli.js -api YOUR_API_KEY_HERE -site howtogeek.com -author "Corbin Davenport"
+API_KEY=PasteYourKeyHere
+node src/cli.js -api $API_KEY -site howtogeek.com -author "Corbin Davenport"
 ```
