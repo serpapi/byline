@@ -118,6 +118,10 @@ async function main() {
         apiKey: args["api"],
         q: searchQuery
     });
+    if (searchResponse?.error) {
+        console.log(`Error: ${searchResponse.error}`);
+        process.exit(1);
+    }
     let resultCount = searchResponse["search_information"]["total_results"];
     // TODO: Exit early if account doesn't have enough credits for estimated search
     console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
