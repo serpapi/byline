@@ -28,27 +28,25 @@ async function getAccountInfo(api_key) {
  * @param {object} settings The settings configuration.
  * @param {string} settings.apiKey The API key for SerpApi.
  * @param {string} settings.q The full search query.
- * @param {number} settings.pagination The page of search results to extract.
- * @param {boolean} settings.lightMode If set to true, the search will be performed with Light Mode.
+ * @param {string} settings.url If present, this URL will be used for the API call instead of other settings.
  * @returns {object} The JSON response from SerpApi.
  */
 async function getSearchResults(settings) {
-    // Create URL request
-    let engine;
-    if (settings.lightMode) {
-        engine = "google_light"
+    // Create URL for API call
+    let url;
+    if (settings.url) {
+        url = new URL(settings.url);
+        url.searchParams.set("api_key", settings.apiKey);
     } else {
-        engine = "google"
+        const options = new URLSearchParams({
+            engine: "google",
+            q: settings.q,
+            filter: 0,
+            api_key: settings.apiKey
+        });
+        url = ("https://serpapi.com/search?" + options);
     }
-    const pagination = (settings?.pagination || 0) * 10;
-    const options = new URLSearchParams({
-        engine: engine,
-        q: settings.q,
-        filter: 0,
-        start: pagination,
-        api_key: settings.apiKey
-    });
-    const url = ("https://serpapi.com/search?" + options);
+    // Run the API call
     try {
         const response = await fetch(url);
         if (!response.ok) {

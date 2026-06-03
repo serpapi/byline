@@ -114,11 +114,11 @@ async function main() {
     // TODO: Make the URL filters user-customizable
     const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/" -inurl:"/category/"`;
     console.log(`Searching Google with query: ${searchQuery}`);
-    const initData = await getSearchResults({
+    let searchResponse = await getSearchResults({
         apiKey: args["api"],
         q: searchQuery
     });
-    const resultCount = initData["search_information"]["total_results"];
+    let resultCount = searchResponse["search_information"]["total_results"];
     // TODO: Exit early if account doesn't have enough credits for estimated search
     console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
     const answer = await askUser(`Type "start" to start the search:`);
@@ -126,14 +126,32 @@ async function main() {
         console.log("Search cancelled.");
         process.exit();
     }
-    // Write first page to CSV
-    for (const result in initData["organic_results"]) {
-        const formattedRow = writeAsFormatted(initData["organic_results"][result]);
+    // Write first page to data object and CSV
+    for (const result in searchResponse["organic_results"]) {
+        const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
         globalData.data.push(formattedRow);
     }
     await writeToCsv(filePath, globalData);
-    // TODO: Continue through all paginations, don't add URLs that are already present in the object
+    // Repeat API call for all remaining pages of search results
+    // TODO: Don't add URLs that are already present in the object, add error handling/wait period for each request
+    if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
+        while (searchResponse?.serpapi_pagination?.next) {
+            console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
+            // Fetch next page of search results
+            searchResponse = await getSearchResults({
+                apiKey: args["api"],
+                url: searchResponse.serpapi_pagination.next
+            });
+            // Write  page to data object and CSV
+            for (const result in searchResponse["organic_results"]) {
+                const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+                globalData.data.push(formattedRow);
+            }
+            await writeToCsv(filePath, globalData);
+        }
+    }
     // Exit
+    console.log("Save complete!");
     process.exit();
 }
 
