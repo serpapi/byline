@@ -1,5 +1,15 @@
 // Functions shared across CLI and web frontend
 
+import { settings } from "node:cluster";
+
+// Blank CSV file template
+const csvTemplate = `"Website","Title","Date","Link","Snippet"`;
+// Settings to use for parsing CSV files
+const papaParseOptions = {
+    quotes: true,
+    header: true
+};
+
 async function getAccountInfo(api_key) {
     // Create API request
     const url = `https://serpapi.com/account?api_key=${api_key}`
@@ -17,19 +27,28 @@ async function getAccountInfo(api_key) {
 
 /**
  * Get results for search query using SerpApi Google Light Search.
- * @param {*} api_key The API key for SerpApi.
- * @param {*} searchQuery The full search query.
- * @param {*} pagination The page of search results to extract.
+ * @param {object} settings The settings configuration.
+ * @param {string} settings.apiKey The API key for SerpApi.
+ * @param {string} settings.q The full search query.
+ * @param {number} settings.pagination The page of search results to extract.
+ * @param {boolean} settings.lightMode If set to true, the search will be performed with Light Mode.
  * @returns {object} The JSON response from SerpApi.
  */
-async function getSearchResults(api_key, searchQuery, pagination=0) {
+async function getSearchResults(settings) {
     // Create URL request
+    let engine;
+    if (settings.lightMode) {
+        engine = "google_light"
+    } else {
+        engine = "google"
+    }
+    const pagination = (settings?.pagination || 0) * 10;
     const options = new URLSearchParams({
-        engine: "google",
-        q: searchQuery,
+        engine: engine,
+        q: settings.q,
         filter: 0,
-        start: (pagination * 10),
-        api_key: api_key
+        start: pagination,
+        api_key: settings.apiKey
     });
     const url = ("https://serpapi.com/search?" + options);
     try {
@@ -44,4 +63,19 @@ async function getSearchResults(api_key, searchQuery, pagination=0) {
     }
 }
 
-export { getAccountInfo, getSearchResults }
+/**
+ * Convert a SerpAPI organic search result into an object for use with Papa Parse.
+ * @param {object} searchResult An item from an organic_results API response.
+ * @returns {object} Object for Papa Parse data, representing a row in the CSV export.
+ */
+function writeAsFormatted(searchResult) {
+    return {
+        "Website": (searchResult?.source || new URL(searchResult?.link).hostname),
+        "Title": (searchResult?.title || "Unknown Title"),
+        "Date": (searchResult?.date || "Unknown Date"),
+        "Link": searchResult.link,
+        "Snippet": (searchResult?.snippet || "No snippet")
+    }
+}
+
+export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions }

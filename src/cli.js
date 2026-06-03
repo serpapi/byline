@@ -5,8 +5,9 @@ import fs from "node:fs/promises";
 import * as readline from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import path from "node:path";
-import convert from "xml-js";
-import { getAccountInfo, getSearchResults } from "./main.js";
+import Papa from 'papaparse';
+import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions } from "./main.js";
+import { glob } from "node:fs";
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
 let globalData = {};
@@ -38,7 +39,7 @@ function getArgs() {
  */
 async function askUser(query) {
     const response = await rl.question(query + " ");
-    return response.replace(/^(['"])(.*)\1$/, '$2');
+    return response.replace(/^(['"])(.*)\1$/, '$2').trim();
 }
 
 /**
@@ -70,28 +71,57 @@ async function main() {
     }
     console.log(`SerpAPI Byline - ${type()} ${release()} (${machine()})\n======\nAccount email: ${accountData["account_email"] || "Unknown"}\nRemaining searches: ${accountData["total_searches_left"] || "Unknown"}\nManage account: https://serpapi.com/dashboard\n======\n`);
     // Get data file location
-    let filePath, fileHandler;
+    let filePath;
     if (args["data"]) {
         filePath = path.resolve(args["data"]);
     } else {
-        filePath = path.resolve("links.html");
+        filePath = path.resolve("data.csv");
     }
     // Open the file
     // TODO: Handle creation of blank file if no file exists at the path
     try {
-        fileHandler = await fs.open(path.resolve(filePath), "r+");
-        const fileContents = await fileHandler.readFile({ encoding: 'utf8' });
-        // Parse the file
-        globalData = convert.xml2js(fileContents, { compact: true });
-        console.log(`Opened data file: ${filePath}\n`);
+        let fileContents = await fs.readFile(filePath, { encoding: "utf8" });
+        // Create header row if it's not present (e.g. the file is empty)
+        if (fileContents === "") {
+            fileContents = csvTemplate.toString();
+            console.log(fileContents)
+        }
+        // Parse file
+        globalData = Papa.parse(fileContents, papaParseOptions);
+        console.log(`Opened data file with ${globalData.data.length} entries: ${filePath}\n`);
     } catch (e) {
         console.log(`There was an error loading the data file:\n${e}\n`);
         process.exit(1);
     }
-    const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/"`;
-    const data = await getSearchResults(args["api"], searchQuery);
-    const resultCount = data["search_information"]["total_results"]
+    // TODO: Make the URL filters user-customizable
+    const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/" -inurl:"/category/"`;
+    console.log(`Searching Google with query: ${searchQuery}`);
+    const initData = await getSearchResults({
+        apiKey: args["api"],
+        q: searchQuery
+    });
+    const resultCount = initData["search_information"]["total_results"]
+    // TODO: Exit early if account doesn't have enough credits for estimated search
     console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
+    const answer = await askUser(`Type "start" to start the search:`);
+    if (answer === "start") {
+        // Write first page to CSV
+        for (const result in initData["organic_results"]) {
+            globalData.data.push(writeAsFormatted(initData["organic_results"][result]))
+        }
+        // TODO: Continue through all paginations, don't add URLs that are already present in the object
+        // Write new CSV file
+        try {
+            const csvExport = Papa.unparse(globalData, papaParseOptions)
+            await fs.writeFile(path.resolve(filePath), csvExport);
+            console.log(`Saved to file: ${path.resolve(filePath)}`);
+        } catch (e) {
+            console.log(`There was an error saving the data file:\n${e}\n`);
+            process.exit(1);
+        }
+    } else {
+        console.log("Search cancelled.")
+    }
     // Exit
     process.exit();
 }
