@@ -3,13 +3,15 @@
 import { machine, type, release } from "node:os";
 import fs from "node:fs/promises";
 import * as readline from 'node:readline/promises';
-import { stdin, stdout } from 'node:process';
+import { env, loadEnvFile, stdin, stdout } from 'node:process';
 import path from "node:path";
 import Papa from 'papaparse';
 import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions } from "./main.js";
 import { glob } from "node:fs";
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
+const envPath = path.resolve("byline-settings.txt");
+let globalApiKey = process.env.SERPAPI_KEY;
 let globalData = {};
 
 /**
@@ -59,6 +61,18 @@ async function writeToCsv(filePath, obj) {
     await fs.writeFile(path.resolve(filePath), csvExport);
 }
 
+/**
+ * Prompts the user for an API key, and saves it to the settings file.
+ * @param {string} envPath Full path to settings/env file
+ * @returns New API key
+ */
+async function saveApiKey(pathToFile) {
+    const apiKey = await askUser("Paste your API key from the https://serpapi.com/manage-api-key page:");
+    await fs.writeFile(pathToFile, `SERPAPI_KEY=${apiKey}`);
+    console.log(`Saved API key to ${pathToFile}`);
+    return apiKey;
+}
+
 async function main() {
     const args = getArgs();
     // Print help if requested
@@ -66,17 +80,31 @@ async function main() {
         showHelp();
         return;
     }
+    // Change saved API key if requested
+    if (args.hasOwnProperty("login")) {
+        await saveApiKey(envPath);
+        return;
+    }
     // Check for API key
-    if (!(args["api"])) {
-        console.log(`\nMissing API key! Get the key from this page: https://serpapi.com/manage-api-key\n\nThen run Byline again with the key, like this:\nbyline -api 1c3a2de014c34641\n\nRun byline -help for more information.\n`);
-        process.exit(1);
+    if (!globalApiKey) {
+        try {
+            loadEnvFile(envPath);
+            globalApiKey = (process.env.SERPAPI_KEY || await saveApiKey(envPath));
+        } catch (err) {
+            if (err.code === "ENOENT") {
+                globalApiKey = await saveApiKey(envPath);
+            } else {
+                console.log(`Error accessing settings file: ${e}`);
+                process.exit(1);
+            }
+        }
     }
     // Show welcome message and account status
     let accountData;
     try {
-        accountData = await getAccountInfo(args["api"]);
+        accountData = await getAccountInfo(globalApiKey);
     } catch {
-        console.log("\nCould not connect to SerpApi, please try again later.\n");
+        console.log(`\nCould not connect to SerpApi, please try again later or check your API key in ${envPath} is correct.\n`);
         process.exit(1);
     }
     console.log(`SerpAPI Byline - ${type()} ${release()} (${machine()})\n======\nAccount email: ${accountData["account_email"] || "Unknown"}\nRemaining searches: ${accountData["total_searches_left"] || "Unknown"}\nManage account: https://serpapi.com/dashboard\n======\n`);
@@ -115,7 +143,7 @@ async function main() {
     const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/" -inurl:"/category/"`;
     console.log(`Searching Google with query: ${searchQuery}\n`);
     let searchResponse = await getSearchResults({
-        apiKey: args["api"],
+        apiKey: globalApiKey,
         q: searchQuery
     });
     if (searchResponse?.error) {
@@ -143,7 +171,7 @@ async function main() {
             console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
             // Fetch next page of search results
             searchResponse = await getSearchResults({
-                apiKey: args["api"],
+                apiKey: globalApiKey,
                 url: searchResponse.serpapi_pagination.next
             });
             // Write  page to data object and CSV

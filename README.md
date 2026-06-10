@@ -4,9 +4,20 @@ Find and save your articles from across the web.
 
 **This is still early in development!**
 
-### Usage
+### Getting Started
+
+First, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file:
 
 ```
-API_KEY=PasteYourKeyHere
-node src/cli.js -api $API_KEY -site howtogeek.com -author "Corbin Davenport"
+node src/cli.js -login
 ```
+
+Then run the application:
+
+```
+node src/cli.js -site howtogeek.com -author "Corbin Davenport"
+```
+
+### Advanced Usage
+
+Byline can read an API key from the `SERPAPI_KEY` environment variable. If the environment variable exists, the `byline-settings.txt` file will not be used.
