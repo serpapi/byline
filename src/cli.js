@@ -152,7 +152,7 @@ async function main() {
     }
     let resultCount = searchResponse["search_information"]["total_results"];
     // TODO: Exit early if account doesn't have enough credits for estimated search
-    console.log(`Found ${resultCount} results. This will require ${resultCount / 10} searches to fetch all results.\n`);
+    console.log(`Found ${resultCount} results. This could require up to ${resultCount / 10} searches to fetch all results.\n`);
     const answer = await askUser(`Type "start" to start the search:`);
     if (answer != "start") {
         console.log("Search cancelled.");
@@ -160,12 +160,16 @@ async function main() {
     }
     // Write first page to data object and CSV
     for (const result in searchResponse["organic_results"]) {
-        const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
-        globalData.data.push(formattedRow);
+        if (globalData.data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+            console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+        } else {
+            const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+            globalData.data.push(formattedRow);
+        }
     }
     await writeToCsv(filePath, globalData);
     // Repeat API call for all remaining pages of search results
-    // TODO: Don't add URLs that are already present in the object, add error handling/wait period for each request
+    // TODO: Parse video card results, add error handling/wait period for each request
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
         while (searchResponse?.serpapi_pagination?.next) {
             console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
@@ -176,8 +180,12 @@ async function main() {
             });
             // Write  page to data object and CSV
             for (const result in searchResponse["organic_results"]) {
-                const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
-                globalData.data.push(formattedRow);
+                if (globalData.data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+                    console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+                } else {
+                    const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+                    globalData.data.push(formattedRow);
+                }
             }
             await writeToCsv(filePath, globalData);
         }

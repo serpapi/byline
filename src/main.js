@@ -40,6 +40,7 @@ async function getSearchResults(settings) {
     } else {
         const options = new URLSearchParams({
             engine: "google",
+            hl: "en",
             q: settings.q,
             filter: 0,
             api_key: settings.apiKey
@@ -74,11 +75,31 @@ function writeAsFormatted(searchResult) {
     }
     // Create formatted date strings
     if (searchResult?.date) {
-        const date = new Date(searchResult.date);
+        let publishedDate;
+        let currentDate = new Date();
+        if (searchResult.date.includes("minute")) {
+            // Examples: 28 minutes ago, 1 minute ago
+            const amount = parseInt(searchResult.date);
+            // Convert minutes to milliseconds: minutes * 60s * 60m * 1000ms
+            publishedDate = new Date(currentDate.getTime() - (amount * 60000));
+        } else if (searchResult.date.includes("hour")) {
+            // Examples: 4 hours ago, 1 hour ago
+            const amount = parseInt(searchResult.date);
+            // Convert hours to milliseconds: hours * 60m * 60s * 1000ms
+            publishedDate = new Date(currentDate.getTime() - (amount * 3600000));
+        } else if (searchResult.date.includes("day")) {
+            // Examples: 6 days ago, 1 day ago
+            const amount = parseInt(searchResult.date);
+            // Convert days to milliseconds: days * 24h * 60m * 60s * 1000ms
+            publishedDate = new Date(currentDate.getTime() - (amount * 86400000));
+        } else {
+            // Example: Dec 20, 2025
+            publishedDate = new Date(searchResult.date);
+        }
         // Add international date format for best Excel compatibility, like "2023-10-27"
-        response["Date (Formatted)"] = new Intl.DateTimeFormat('en-CA').format(date);
+        response["Date (Formatted)"] = new Intl.DateTimeFormat('en-CA').format(publishedDate);
         // Add ISO 8601 date format for parsing with other tools, like "2023-10-27T14:30:00.000Z"
-        response["Date (ISO)"] = date.toISOString();
+        response["Date (ISO)"] = publishedDate.toISOString();
     }
     return response;
 }
