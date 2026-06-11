@@ -99,6 +99,8 @@ async function main() {
             }
         }
     }
+    // Check for engine
+    const searchEngine = (args["engine"] || "google");
     // Show welcome message and account status
     let accountData;
     try {
@@ -139,20 +141,25 @@ async function main() {
         console.log(`There was an error loading the data file:\n${e}\n`);
         process.exit(1);
     }
+    // Run first search
     // TODO: Make the URL filters user-customizable
-    const searchQuery = `"${args['author']}" site:${args["site"]} -inurl:"/archive/" -inurl:"/tag/" -inurl:"/category/"`;
-    console.log(`Searching Google with query: ${searchQuery}\n`);
+    const searchFilters = ["/archive/", "/tag/", "/category/"];
     let searchResponse = await getSearchResults({
+        author: args['author'].trim(),
+        site: args["site"].trim(),
+        filters: searchFilters,
         apiKey: globalApiKey,
-        q: searchQuery
+        engine: searchEngine
     });
     if (searchResponse?.error) {
         console.log(`Error: ${searchResponse.error}`);
         process.exit(1);
     }
-    let resultCount = searchResponse["search_information"]["total_results"];
+    let resultCount = searchResponse?.search_information?.total_results;
     // TODO: Exit early if account doesn't have enough credits for estimated search
-    console.log(`Found ${resultCount} results. This could require up to ${resultCount / 10} searches to fetch all results.\n`);
+    if (resultCount) {
+        console.log(`Found ${resultCount} results. This could require up to ${resultCount / 10} searches to fetch all results.\n`);
+    }
     const answer = await askUser(`Type "start" to start the search:`);
     if (answer != "start") {
         console.log("Search cancelled.");

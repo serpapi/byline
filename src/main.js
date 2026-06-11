@@ -27,27 +27,42 @@ async function getAccountInfo(api_key) {
  * Get results for search query using SerpApi Google Light Search.
  * @param {object} settings The settings configuration.
  * @param {string} settings.apiKey The API key for SerpApi.
- * @param {string} settings.q The full search query.
+ * @param {string} settings.author The author or creator to search.
+ * @param {string} settings.site The site to search.
+ * @param {Array} settings.filters The list of strings to ignore in the URL path. Engines besides Google will only use the first filter.
+ * @param {string} settings.engine The search engine to use.
  * @param {string} settings.url If present, this URL will be used for the API call instead of other settings.
  * @returns {object} The JSON response from SerpApi.
  */
 async function getSearchResults(settings) {
+    // Create search string
+    let query = `"${settings.author}" site:${settings.site}`;
+    if (settings?.filters?.length && (settings.engine === "google" || settings.engine === "google_light")) {
+        // Google generally supports multiple URL filters
+        query += ` ${settings.filters.map(filter => `-inurl:"${filter}"`).join(' ')}`;
+    } else if (settings?.filters?.length) {
+        // Bing, Yahoo, DuckDuckGo, etc will return zero results if more than one filter is defined
+        query += ` -inurl:${settings.filters[0]}`;
+    }
     // Create URL for API call
     let url;
     if (settings.url) {
         url = new URL(settings.url);
         url.searchParams.set("api_key", settings.apiKey);
     } else {
+        // Some values are not used for all engines, SerpApi ignores the ones that aren't needed
         const options = new URLSearchParams({
-            engine: "google",
+            engine: settings.engine,
             hl: "en",
-            q: settings.q,
+            mkt: "en-US",
+            p: query,
+            q: query,
             filter: 0,
             api_key: settings.apiKey
         });
         url = ("https://serpapi.com/search?" + options);
+        console.log(`Searching ${settings.engine} with query: ${query}`);
     }
-    // Run the API call
     try {
         const response = await fetch(url);
         if (!response.ok) {
