@@ -15,7 +15,7 @@ node src/cli.js -login
 Then run the application:
 
 ```
-node src/cli.js -site howtogeek.com -author "Corbin Davenport"
+node src/cli.js -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/"
 ```
 
 ### Advanced Usage

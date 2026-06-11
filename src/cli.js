@@ -101,6 +101,8 @@ async function main() {
     }
     // Check for engine
     const searchEngine = (args["engine"] || "google");
+    // Check for search filters
+    const searchFilters = (args?.filters?.split(",") || []);
     // Show welcome message and account status
     let accountData;
     try {
@@ -142,8 +144,6 @@ async function main() {
         process.exit(1);
     }
     // Run first search
-    // TODO: Make the URL filters user-customizable
-    const searchFilters = ["/archive/", "/tag/", "/category/"];
     let searchResponse = await getSearchResults({
         author: args['author'].trim(),
         site: args["site"].trim(),
