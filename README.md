@@ -8,15 +8,22 @@ Find and save your articles from across the web.
 
 First, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file:
 
-```
+```bash
 node src/cli.js -login
 ```
 
-Then run the application:
+Then run Byline with `-author` and `-site` options to create the link list:
 
-```
+```bash
 node src/cli.js -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/"
 ```
+
+You can create backups of links with [Monolith](https://github.com/Y2Z/monolith) installed:
+
+```bash
+node src/cli.js -backup
+```
+
 
 ### Advanced Usage
 

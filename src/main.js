@@ -2,12 +2,19 @@
 
 // Blank CSV file template
 const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","Snippet","Language"`;
+
 // Settings to use for parsing CSV files
 const papaParseOptions = {
     quotes: true,
     header: true
 };
 
+/**
+ * Check information for a SerpApi account.
+ * More info: https://serpapi.com/account-api
+ * @param {string} api_key The API key connected to the account
+ * @returns {object} The JSON response from SerpApi.
+ */
 async function getAccountInfo(api_key) {
     // Create API request
     const url = `https://serpapi.com/account?api_key=${api_key}`

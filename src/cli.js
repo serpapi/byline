@@ -3,6 +3,7 @@
 import { machine, type, release } from "node:os";
 import fs from "node:fs/promises";
 import * as readline from 'node:readline/promises';
+import { execSync } from "node:child_process";
 import { env, loadEnvFile, stdin, stdout } from 'node:process';
 import path from "node:path";
 import Papa from 'papaparse';
@@ -13,6 +14,28 @@ const rl = readline.createInterface({ input: stdin, output: stdout });
 const envPath = path.resolve("byline-settings.txt");
 let globalApiKey = process.env.SERPAPI_KEY;
 let globalData = {};
+
+/**
+ * Checks if a given command or executable is available to the system.
+ * This is used primarily to see if Monolith is installed.
+ * @param {string} command The name of the command to check.
+ * @returns {boolean}
+ */
+async function checkCmdExists(command) {
+    try {
+        let checkCmd;
+        // 'which' for Unix, 'where' for Windows
+        if (process.platform === "win32") {
+            checkCmd = `where ${command}`;
+        } else {
+            checkCmd = `which ${command}`
+        }
+        execSync(checkCmd, { stdio: 'ignore' });
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
 
 /**
  * Get the list of arguments from command line and parse them as an object.
@@ -48,7 +71,7 @@ async function askUser(query) {
  * Show help information in the console.
  */
 function showHelp() {
-    console.log("Not implemented yet!")
+    console.log("Help is not implemented yet!");
 }
 
 /**
@@ -73,18 +96,87 @@ async function saveApiKey(pathToFile) {
     return apiKey;
 }
 
-async function main() {
-    const args = getArgs();
-    // Print help if requested
-    if (args.hasOwnProperty("help")) {
-        showHelp();
+/**
+ * Read or create the CSV database file, then save its contents to the globalData variable.
+ * @param {obj} args The path to the file.
+ */
+async function readDataFile(filePath) {
+    try {
+        let fileContents;
+        try {
+            fileContents = await fs.readFile(filePath, { encoding: "utf8" });
+            // Create header rows if the file is empty
+            fileContents = (fileContents || csvTemplate.toString());
+        } catch (err) {
+            if (err.code === "ENOENT") {
+                await fs.writeFile(filePath, csvTemplate.toString());
+                fileContents = csvTemplate.toString();
+            } else {
+                console.log(`Error accessing data file: ${e}`);
+                process.exit(1);
+            }
+        }
+        // Parse file
+        globalData = Papa.parse(fileContents, papaParseOptions);
+        console.log(`Opened data file with ${globalData.data.length} entries: ${filePath}\n`);
+    } catch (e) {
+        console.log(`There was an error loading the data file:\n${e}\n`);
+        process.exit(1);
+    }
+}
+
+/**
+ * Start an interactive article backup with Monolith.
+ * 
+ * Monolith documentation: https://github.com/Y2Z/monolith
+ * @param {obj} args JSON object of command-line arguments.
+ */
+async function startBackup(args) {
+    // Check if Monolith is installed
+    const monolithInstalled = await checkCmdExists("monolith");
+    if (!monolithInstalled) {
+        console.log("\nMonolith is required for backups, but it is not installed.\n\nDownload Monolith, then try again: https://github.com/Y2Z/monolith#installation\n");
         return;
     }
-    // Change saved API key if requested
-    if (args.hasOwnProperty("login")) {
-        await saveApiKey(envPath);
-        return;
+    // Read CSV file into globalData object
+    let filePath;
+    if (args["data"]) {
+        filePath = path.resolve(args["data"]);
+    } else {
+        filePath = path.resolve("data.csv");
     }
+    await readDataFile(filePath);
+    // Create backup directory if it doesn't exist
+    const backupDir = path.resolve("./backup/");
+    try {
+        await fs.mkdir(backupDir, { recursive: true });
+    } catch (err) {
+        console.error('Error creating backup directory:', err);
+        process.exit(1);
+    }
+    // Ask to start
+    const answer = await askUser(`Ready to back up ${globalData.data.length} links in directory: ${path.resolve()}\nType "start" to start:`);
+    if (answer != "start") {
+        console.log("Backup cancelled.");
+        return
+    }
+    // Start backups
+    globalData.data.forEach(function (item) {
+        let thisDir;
+        if (item["Date (Formatted)"] && item["Date (Formatted)"].includes("-")) {
+            thisDir = path.resolve(backupDir, item["Date (Formatted)"].replaceAll("-", "/"));
+        } else {
+            thisDir = path.resolve(backupDir, "Unknown Date");
+        }
+        // TODO: Run monolith and save to path
+    })
+}
+
+/**
+ * Start an interactive search that saves data to the CSV file.
+ * @param {obj} args JSON object of command-line arguments.
+ */
+async function startSearch(args) {
     // Check for API key
     if (!globalApiKey) {
         try {
@@ -112,37 +204,14 @@ async function main() {
         process.exit(1);
     }
     console.log(`SerpAPI Byline - ${type()} ${release()} (${machine()})\n======\nAccount email: ${accountData["account_email"] || "Unknown"}\nRemaining searches: ${accountData["total_searches_left"] || "Unknown"}\nManage account: https://serpapi.com/dashboard\n======\n`);
-    // Get data file location
+    // Read CSV file into globalData object
     let filePath;
     if (args["data"]) {
         filePath = path.resolve(args["data"]);
     } else {
         filePath = path.resolve("data.csv");
     }
-    // Open the file
-    try {
-        let fileContents;
-        try {
-            fileContents = await fs.readFile(filePath, { encoding: "utf8" });
-            // Create header rows if the file is empty
-            fileContents = (fileContents || csvTemplate.toString());
-        } catch (err) {
-            if (err.code === "ENOENT") {
-                await fs.writeFile(filePath, csvTemplate.toString());
-                fileContents = csvTemplate.toString();
-            } else {
-                console.log(`Error accessing data file: ${e}`);
-                process.exit(1);
-            }
-        }
-        // Parse file
-        globalData = Papa.parse(fileContents, papaParseOptions);
-        console.log(`Opened data file with ${globalData.data.length} entries: ${filePath}\n`);
-    } catch (e) {
-        console.log(e)
-        console.log(`There was an error loading the data file:\n${e}\n`);
-        process.exit(1);
-    }
+    await readDataFile(filePath);
     // Run first search
     let searchResponse = await getSearchResults({
         author: args['author'].trim(),
@@ -213,6 +282,25 @@ async function main() {
     // Exit
     console.log("Save complete!");
     process.exit();
+}
+
+async function main() {
+    const args = getArgs();
+    if (args.hasOwnProperty("help")) {
+        // Print help if requested
+        showHelp();
+    } else if (args.hasOwnProperty("login")) {
+        // Change saved API key if requested
+        await saveApiKey(envPath);
+    } else if (args.hasOwnProperty("author") && args.hasOwnProperty("site")) {
+        // Start search if requested
+        await startSearch(args);
+    } else if (args.hasOwnProperty("backup")) {
+        // Start article backup with Monolith
+        await startBackup(args);
+    } else {
+        showHelp();
+    }
 }
 
 // Listen for termination signals
