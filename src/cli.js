@@ -3,7 +3,7 @@
 import { machine, type, release } from "node:os";
 import fs from "node:fs/promises";
 import * as readline from 'node:readline/promises';
-import { execSync } from "node:child_process";
+import { spawn, execSync } from "node:child_process";
 import { env, loadEnvFile, stdin, stdout } from 'node:process';
 import path from "node:path";
 import Papa from 'papaparse';
@@ -35,6 +35,33 @@ async function checkCmdExists(command) {
     } catch (e) {
         return false;
     }
+}
+
+/**
+ * Runs a command in a child process as a Promise
+ * @param {string} command The command to run and wait for completion
+ * @param {aray} args The arguments to pass to the command
+ * @returns 
+ */
+function runCommand(command, args) {
+    return new Promise((resolve, reject) => {
+        const child = spawn(command, args);
+        // Pipe output to parent console
+        child.stdout.pipe(process.stdout);
+        child.stderr.pipe(process.stderr);
+        // Resolve when the process finishes successfully
+        child.on('close', (code) => {
+            if (code === 0) {
+                resolve();
+            } else {
+                reject(new Error(`Process exited with code ${code}`));
+            }
+        });
+        // Reject if the command fails to start (e.g., command not found)
+        child.on('error', (err) => {
+            reject(err);
+        });
+    });
 }
 
 /**
@@ -161,15 +188,27 @@ async function startBackup(args) {
         return
     }
     // Start backups
-    globalData.data.forEach(function (item) {
+    for (const item of globalData.data) {
+        // Set up target directory
         let thisDir;
         if (item["Date (Formatted)"] && item["Date (Formatted)"].includes("-")) {
             thisDir = path.resolve(backupDir, item["Date (Formatted)"].replaceAll("-", "/"));
         } else {
             thisDir = path.resolve(backupDir, "Unknown Date");
         }
-        // TODO: Run monolith and save to path
-    })
+        // Run monolith in target directory
+        try {
+            await fs.mkdir(thisDir, { recursive: true });
+            console.log(`Created directory: ${thisDir}\nRunning monolith for: ${item.Link}`);
+            const htmlFile = path.resolve(thisDir, "%title%.html");
+            // Skip audio (-a) and video (-v) resources
+            await runCommand('monolith', [item["Link"], "-a", "-v", "-o", htmlFile]); 
+        } catch (err) {
+            console.error(`Error saving ${item["Link"]}, skipping:`, err);
+            continue;
+        }
+    }
+    console.log(`Done!\n`);
 }
 
 /**
