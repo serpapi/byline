@@ -7,7 +7,7 @@ import { spawn, execSync } from "node:child_process";
 import { env, loadEnvFile, stdin, stdout } from 'node:process';
 import path from "node:path";
 import Papa from 'papaparse';
-import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions } from "./main.js";
+import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs } from "./main.js";
 import { glob } from "node:fs";
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
@@ -62,26 +62,6 @@ function runCommand(command, args) {
             reject(err);
         });
     });
-}
-
-/**
- * Get the list of arguments from command line and parse them as an object.
- * @returns {object}
- */
-function getArgs() {
-    const array = process.argv;
-    const result = {};
-    for (let i = 0; i < array.length; i++) {
-        const currentItem = array[i];
-        if (currentItem.startsWith('-')) {
-            // Remove all leading dashes
-            const cleanKey = currentItem.replace(/^-+/, '');
-            // Get the value and store it
-            const nextValue = array[i + 1];
-            result[cleanKey] = nextValue;
-        }
-    }
-    return result;
 }
 
 /**

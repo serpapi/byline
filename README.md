@@ -4,7 +4,17 @@ Find and save your articles from across the web.
 
 **This is still early in development!**
 
-### Getting Started
+### Using The Web App
+
+Start the web server:
+
+```
+node src/web.js
+```
+
+You can change the port with `-port 80`.
+
+### Using The CLI Application
 
 First, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file:
 

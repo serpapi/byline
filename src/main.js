@@ -126,4 +126,24 @@ function writeAsFormatted(searchResult) {
     return response;
 }
 
-export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions }
+/**
+ * Get the list of arguments from command line and parse them as an object.
+ * @returns {object}
+ */
+function getArgs() {
+    const array = process.argv;
+    const result = {};
+    for (let i = 0; i < array.length; i++) {
+        const currentItem = array[i];
+        if (currentItem.startsWith('-')) {
+            // Remove all leading dashes
+            const cleanKey = currentItem.replace(/^-+/, '');
+            // Get the value and store it
+            const nextValue = array[i + 1];
+            result[cleanKey] = nextValue;
+        }
+    }
+    return result;
+}
+
+export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs }
