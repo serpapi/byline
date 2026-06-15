@@ -44,14 +44,45 @@
     </nav>
     <!-- Main container -->
     <div class="container">
-        <!-- Main settings -->
-        <div class="card mt-3 mt-md-5">
+        <div class="display-6 text-center py-5 w-100">
+            <h3>Find your published work from across the web.</h3>
+        </div>
+        <!-- Byline settings -->
+        <div class="card mb-3 mb-md-4">
             <div class="card-body">
-                <h5 class="card-title">Settings</h5>
-                <p class="card-text">Coming soon</p>
+                <h5 class="card-title">Byline Settings</h5>
+                <p class="card-text">You need a <a href="https://serpapi.com/users/sign_up" target="_blank">free SerpApi account</a> to get started.</p>
+                <!-- API key -->
+                <div class="mb-3">
+                    <label for="byline-apikey" class="form-label">SerpApi API Key</label>
+                    <input type="text" class="form-control" id="byline-apikey" aria-describedby="byline-apikey-help" autocorrect="off">
+                    <div id="byline-apikey-help" class="form-text">
+                        Get the key from your <a href="https://serpapi.com/manage-api-key">account dashboard</a>.
+                    </div>
+                </div>
+                <!-- Author -->
+                <div class="mb-3">
+                    <label for="byline-author" class="form-label">Author</label>
+                    <input type="text" class="form-control" id="byline-author" placeholder="Bob Jones" aria-describedby="byline-author-help">
+                    <div id="byline-author-help" class="form-text">
+                        The full name that appears on published articles, blog posts, or other work.
+                    </div>
+                </div>
+                <!-- URL filters -->
+                <div>
+                    <label for="byline-filters" class="form-label">URL Filters</label>
+                    <input type="text" class="form-control" id="byline-filters" placeholder="/tags/,/archive/" aria-describedby="byline-filters-help">
+                    <div id="byline-filters-help" class="form-text">
+                        URLs containing these strings will be skipped. The list should be comma-separated.
+                    </div>
+                </div>
             </div>
         </div>
+        <!-- Search button -->
+        <button type="button" id="byline-start-btn" class="btn btn-primary w-100">Start Search</button>
     </div>
 </body>
+
+<script src="js/frontend-main.js"></script>
 
 </html>
