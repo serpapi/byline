@@ -42,6 +42,7 @@ async function getAccountInfo(api_key) {
  * @returns {object} The JSON response from SerpApi.
  */
 async function getSearchResults(settings) {
+    let response = {};
     // Create search string
     let query = `"${settings.author}" site:${settings.site}`;
     if (settings?.filters?.length && (settings.engine === "google" || settings.engine === "google_light")) {
@@ -70,16 +71,43 @@ async function getSearchResults(settings) {
         url = ("https://serpapi.com/search?" + options);
         console.log(`Searching ${settings.engine} with query: ${query}`);
     }
+    // Make API call
     try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`Response status: ${response.status}`);
+        const serpResponse = await fetch(url);
+        if (serpResponse.ok) {
+            response = await serpResponse.json();
+        } else {
+            console.error(`Response status: ${serpResponse.status}`);
+            response.error = `There was a ${serpResponse.status} error.`;
+            return response;
         }
-        const result = await response.json();
-        return result;
     } catch (error) {
-        throw new Error(error);
+        console.error(error);
+        response.error = error?.message;
+        return response;
     }
+    // Add estimate for searches remaining, if this is the first search for the query
+    if (!settings.url) {
+        let returnData = {};
+        const totalResults = response?.search_information?.total_results;
+        const firstPageResults = response?.organic_results?.length;
+        if (totalResults && response?.serpapi_pagination?.next) {
+            // There is at least one more page of results, and a rough estimate is available
+            response.byline_estimate = `Found ${totalResults} results. This could require up to ${Math.ceil(totalResults / 10)} searches to fetch all results.`;
+        } else if (firstPageResults && response?.serpapi_pagination?.other_pages) {
+            // There is at least one more page of results, but no estimate is available
+            const lastPage = Math.max(...Object.keys(response.serpapi_pagination.other_pages));
+            response.byline_estimate = `Found ${firstPageResults} results on first page. This will require at least ${lastPage} searches to fetch all results.`;
+        } else if (firstPageResults > 0) {
+            // There are no more pages of results
+            response.byline_estimate = `Found ${firstPageResults} results and no more pages.`;
+        } else {
+            // There are no results
+            response.error = response.error || `No results were found with the ${searchEngine} engine.`;
+        }
+    }
+    // Send result
+    return response;
 }
 
 /**

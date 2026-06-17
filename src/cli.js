@@ -240,27 +240,10 @@ async function startSearch(args) {
         engine: searchEngine
     });
     if (searchResponse?.error) {
-        console.log(`Error: ${searchResponse.error}`);
+        console.log(`${searchResponse.error}\n`);
         process.exit(1);
     }
-    // TODO: Exit early if account doesn't have enough credits for estimated search
-    const totalResults = searchResponse?.search_information?.total_results;
-    const firstPageResults = searchResponse?.organic_results?.length;
-    if (totalResults && searchResponse?.serpapi_pagination?.next) {
-        // There is at least one more page of results, and a rough estimate is available
-        console.log(`Found ${totalResults} results. This could require up to ${Math.ceil(totalResults / 10)} searches to fetch all results.\n`);
-    } else if (firstPageResults && searchResponse?.serpapi_pagination?.other_pages) {
-        // There is at least one more page of results, but no estimate is available
-        const lastPage = Math.max(...Object.keys(searchResponse.serpapi_pagination.other_pages));
-        console.log(`Found ${firstPageResults} results on first page. This will require at least ${lastPage} searches to fetch all results.`);
-    } else if (firstPageResults > 0) {
-        // There are no more pages of results
-        console.log(`Found ${firstPageResults} results and no more pages.`);
-    } else {
-        // There are no results
-        console.log(`No results were found with the ${searchEngine} engine.`);
-        process.exit(1);
-    }
+    console.log(`${searchResponse.byline_estimate}\n`);
     const answer = await askUser(`Type "start" to start:`);
     if (answer != "start") {
         console.log("Search cancelled.");

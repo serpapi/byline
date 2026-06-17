@@ -61,10 +61,9 @@ app.get("/api.json", async function (req, res) {
     return;
   }
   // Create data object for search
-  // TODO: Allow importing existing CSV file, allow resume from partial search
+  // TODO: Allow importing existing CSV file, allow resuming partial search
   let listData = Papa.parse(csvTemplate, papaParseOptions);
   // Run first search
-  // TODO: Exit early if account doesn't have enough credits for estimated search
   let searchResponse = await getSearchResults({
     author: req.query.author.trim(),
     site: req.query.website.trim(),
@@ -77,7 +76,7 @@ app.get("/api.json", async function (req, res) {
     res.json(data);
     return;
   }
-  data.message = `Found ${searchResponse?.search_information?.total_results} results`;
+  data.message = `${searchResponse.byline_estimate}\n\nList save not implemented yet!`;
   res.json(data);
 });
 
