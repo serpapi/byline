@@ -39,6 +39,7 @@ document.getElementById("byline-start-btn").addEventListener("click", async func
         }
     }
     if (json) {
+        console.log("Got response from server:", json);
         alert(json.message);
     }
 })

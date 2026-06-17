@@ -5,7 +5,8 @@
 import express, { json } from "express";
 import serveStatic from "serve-static";
 import path from "node:path";
-import { getArgs } from "./main.js";
+import Papa from 'papaparse';
+import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults } from "./main.js";
 
 // Initialize Express
 const app = express();
@@ -27,21 +28,50 @@ app.get("/api.json", async function (req, res) {
   console.log("\nReceived data:", req.query);
   if (!req?.query?.api_key) {
     data.message = "No API key was provided!";
-    req.json(data);
+    res.json(data);
     return;
   }
   // Check for author
   if (!req?.query?.author) {
     data.message = "No author was provided!";
-    req.json(data);
+    res.json(data);
     return;
   }
   // Set up optional URL filters
-  let filters = [];
+  let searchFilters = [];
   if (req?.query?.filters) {
-    filters = req.query.filters.trim().split(",");
+    searchFilters = req.query.filters.trim().split(",");
   }
-  data.message = "Works!";
+  // Check account status
+  let accountData;
+  try {
+    accountData = await getAccountInfo(req.query.api_key);
+    data.accountEmail = (accountData["account_email"] || "Unknown");
+    data.remainingSearches = (accountData["total_searches_left"] || "Unknown");
+  } catch (e) {
+    console.error(e);
+    data.message = "Could not connect to SerpApi, please try again later or check your API key is correct.";
+    res.json(data);
+    return;
+  }
+  // Create data object for search
+  // TODO: Allow importing existing CSV file, allow resume from partial search
+  let listData = Papa.parse(csvTemplate, papaParseOptions);
+  // Run first search
+  // TODO: Exit early if account doesn't have enough credits for estimated search
+  let searchResponse = await getSearchResults({
+    author: req.query.author.trim(),
+    site: "cnn.com".trim(),
+    filters: searchFilters,
+    apiKey: req.query.api_key,
+    engine: "google"
+  });
+  if (searchResponse?.error) {
+    data.message = `Error: ${searchResponse.error}`;
+    res.json(data);
+    return;
+  }
+  data.message = `Found ${searchResponse?.search_information?.total_results} results`;
   res.json(data);
 });
 
