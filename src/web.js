@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // Web interface/server for Byline
 
 import express, { json } from "express";

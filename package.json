@@ -10,7 +10,8 @@
     "url": "https://github.com/serpapi/byline/issues"
   },
   "bin": {
-    "byline": "src/cli.js"
+    "byline": "src/cli.js",
+    "byline-web": "src/web.js"
   },
   "repository": {
     "type": "git",
