@@ -37,6 +37,12 @@ app.get("/api.json", async function (req, res) {
     res.json(data);
     return;
   }
+  // Check for website
+  if (!req?.query?.website) {
+    data.message = "No website was provided!";
+    res.json(data);
+    return;
+  }
   // Set up optional URL filters
   let searchFilters = [];
   if (req?.query?.filters) {
@@ -61,7 +67,7 @@ app.get("/api.json", async function (req, res) {
   // TODO: Exit early if account doesn't have enough credits for estimated search
   let searchResponse = await getSearchResults({
     author: req.query.author.trim(),
-    site: "cnn.com".trim(),
+    site: req.query.website.trim(),
     filters: searchFilters,
     apiKey: req.query.api_key,
     engine: "google"

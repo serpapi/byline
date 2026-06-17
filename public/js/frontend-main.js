@@ -20,6 +20,7 @@ document.getElementById("byline-start-btn").addEventListener("click", async func
     const params = new URLSearchParams({
         api_key: document.getElementById("byline-apikey").value,
         author: document.getElementById("byline-author").value,
+        website: document.getElementById("byline-website").value,
         filters: document.getElementById("byline-filters").value
     });
     const url = new URL(`${hostname}/api.json`);
