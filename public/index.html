@@ -47,6 +47,30 @@
         <div class="display-6 text-center py-5 w-100">
             <h3>Find your published work from across the web.</h3>
         </div>
+        <!-- Search button -->
+        <div class="text-center w-100">
+            <button type="button" id="byline-start-btn" class="btn btn-lg btn-primary mb-3 mb-md-4">Start web search</button>
+        </div>
+        <!-- Error alert -->
+        <div id="byline-error" class="alert alert-danger mb-3 mb-md-4 d-none" role="alert">
+            <strong>Error!</strong> <span id="byline-error-message"></span>
+        </div>
+        <!-- Loading alert -->
+        <div id="byline-loading" class="alert alert-secondary mb-3 mb-md-4 d-none" role="alert">
+            <strong>Loading, please wait...</strong>
+        </div>
+        <!-- Confirmation alert -->
+        <div id="byline-confirm-start" class="alert alert-primary mb-3 mb-md-4 d-none" role="alert">
+            <div id="byline-estimate" class="mb-3">wfwf</div>
+            <button type="button" id="byline-start-btn" class="btn btn-primary" disabled>Confirm search</button>
+        </div>
+        <!-- Status box -->
+        <div id="byline-status-update" class="alert alert-primary mb-3 mb-md-4 d-none" role="alert">
+            <div class="d-flex align-items-center">
+                <strong role="status">Found <span id="byline-article-matches">0</span> results, still searching...</strong>
+                <div class="spinner-border ms-auto" aria-hidden="true"></div>
+            </div>
+        </div>
         <!-- Byline settings -->
         <div class="card mb-3 mb-md-4">
             <div class="card-body">
@@ -86,8 +110,6 @@
                 </div>
             </div>
         </div>
-        <!-- Search button -->
-        <button type="button" id="byline-start-btn" class="btn btn-primary w-100 mb3 mb-md-4">Start Search</button>
     </div>
 </body>
 

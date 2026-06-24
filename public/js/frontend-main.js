@@ -1,4 +1,9 @@
 const hostname = document.location.origin;
+const errorEl = document.getElementById("byline-error");
+const errorMessageEl = document.getElementById("byline-error-message");
+const loadingEl = document.getElementById("byline-loading");
+const confirmEl = document.getElementById("byline-confirm-start");
+const confirmMessageEl = document.getElementById("byline-estimate");
 
 // Automatically save all text field values to localStorage
 document.querySelectorAll("input[type='text']").forEach(function () {
@@ -14,8 +19,41 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 })
 
+/**
+ * Show the error box with the provided message.
+ * @param {String} message
+ */
+function showError(message) {
+    errorMessageEl.innerText = message;
+    loadingEl.classList.add("d-none");
+    confirmEl.classList.add("d-none");
+    errorEl.classList.remove("d-none");
+}
+
+/**
+ * Show loading box and hide other messages.
+ */
+function showLoading() {
+    errorEl.classList.add("d-none");
+    confirmEl.classList.add("d-none");
+    loadingEl.classList.remove("d-none");
+}
+
+/**
+ * Show the confirmation box with the provided message.
+ * @param {String} message
+ */
+function showConfirmation(message) {
+    confirmMessageEl.innerText = message;
+    errorEl.classList.add("d-none");
+    loadingEl.classList.add("d-none");
+    confirmEl.classList.remove("d-none");
+}
+
 // Start button
 document.getElementById("byline-start-btn").addEventListener("click", async function () {
+    // Switch to loading message
+    showLoading();
     // Create request for server
     const params = new URLSearchParams({
         api_key: document.getElementById("byline-apikey").value,
@@ -25,22 +63,22 @@ document.getElementById("byline-start-btn").addEventListener("click", async func
     });
     const url = new URL(`${hostname}/api.json`);
     url.search = params.toString();
-    // Send request to server
-    // TODO: Move all alerts/output to HTML elements
-    console.log("Sending request to server:", url.href);
+    // Send request to SerpApi server
+    console.log("Sending request to SerpApi:", url.href);
     let json;
     try {
         const response = await fetch(url);
         json = await response.json();
     } catch (error) {
-        if (error instanceof SyntaxError) {
-            alert('There was a SyntaxError', error);
-        } else {
-            alert('There was an error', error);
-        }
+        console.log(error);
+        showError(error);
     }
-    if (json) {
-        console.log("Got response from server:", json);
-        alert(json.message);
+    console.log("Got response from server:", json);
+    if (json?.message) {
+        showConfirmation(json.message);
+    } else if (json?.error) {
+        showError(json.error);
+    } else {
+        showError("Could not read response from server.");
     }
 })

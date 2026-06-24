@@ -27,19 +27,19 @@ app.get("/api.json", async function (req, res) {
   // Check for API key
   console.log("\nReceived data:", req.query);
   if (!req?.query?.api_key) {
-    data.message = "No API key was provided!";
+    data.error = "No API key was provided!";
     res.json(data);
     return;
   }
   // Check for author
   if (!req?.query?.author) {
-    data.message = "No author was provided!";
+    data.error = "No author was provided!";
     res.json(data);
     return;
   }
   // Check for website
   if (!req?.query?.website) {
-    data.message = "No website was provided!";
+    data.error = "No website was provided!";
     res.json(data);
     return;
   }
@@ -56,7 +56,7 @@ app.get("/api.json", async function (req, res) {
     data.remainingSearches = (accountData["total_searches_left"] || "Unknown");
   } catch (e) {
     console.error(e);
-    data.message = "Could not connect to SerpApi, please try again later or check your API key is correct.";
+    data.error = "Could not connect to SerpApi, please try again later or check your API key is correct.";
     res.json(data);
     return;
   }
@@ -72,11 +72,11 @@ app.get("/api.json", async function (req, res) {
     engine: "google"
   });
   if (searchResponse?.error) {
-    data.message = `Error: ${searchResponse.error}`;
+    data.error = `Error: ${searchResponse.error}`;
     res.json(data);
     return;
   }
-  data.message = `${searchResponse.byline_estimate}\n\nList save not implemented yet!`;
+  data.message = `${searchResponse.byline_estimate}\n\nSave not implemented yet!`;
   res.json(data);
 });
 
