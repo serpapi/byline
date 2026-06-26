@@ -6,7 +6,7 @@ import express, { json } from "express";
 import serveStatic from "serve-static";
 import path from "node:path";
 import Papa from 'papaparse';
-import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults } from "./main.js";
+import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted } from "./main.js";
 
 // Initialize Express
 const app = express();
@@ -14,6 +14,9 @@ const app = express();
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
 const mainDir = path.resolve(import.meta.dirname, '../');
+
+// Initialize database for running all search jobs
+const globalDatabase = {};
 
 // Get command-line arguments
 const args = getArgs();
@@ -23,24 +26,24 @@ app.use(serveStatic(publicDir));
 
 // API for communication with frontend page
 app.get("/api.json", async function (req, res) {
-  const data = {};
+  const responseData = {};
   // Check for API key
   console.log("\nReceived data:", req.query);
   if (!req?.query?.api_key) {
-    data.error = "No API key was provided!";
-    res.json(data);
+    responseData.error = "No API key was provided!";
+    res.json(responseData);
     return;
   }
   // Check for author
   if (!req?.query?.author) {
-    data.error = "No author was provided!";
-    res.json(data);
+    responseData.error = "No author was provided!";
+    res.json(responseData);
     return;
   }
   // Check for website
   if (!req?.query?.website) {
-    data.error = "No website was provided!";
-    res.json(data);
+    responseData.error = "No website was provided!";
+    res.json(responseData);
     return;
   }
   // Set up optional URL filters
@@ -52,17 +55,14 @@ app.get("/api.json", async function (req, res) {
   let accountData;
   try {
     accountData = await getAccountInfo(req.query.api_key);
-    data.accountEmail = (accountData["account_email"] || "Unknown");
-    data.remainingSearches = (accountData["total_searches_left"] || "Unknown");
+    responseData.accountEmail = (accountData["account_email"] || "Unknown");
+    responseData.remainingSearches = (accountData["total_searches_left"] || "Unknown");
   } catch (e) {
     console.error(e);
-    data.error = "Could not connect to SerpApi, please try again later or check your API key is correct.";
-    res.json(data);
+    responseData.error = "Could not connect to SerpApi, please try again later or check your API key is correct.";
+    res.json(responseData);
     return;
   }
-  // Create data object for search
-  // TODO: Allow importing existing CSV file, allow resuming partial search
-  let listData = Papa.parse(csvTemplate, papaParseOptions);
   // Run first search
   let searchResponse = await getSearchResults({
     author: req.query.author.trim(),
@@ -72,12 +72,53 @@ app.get("/api.json", async function (req, res) {
     engine: "google"
   });
   if (searchResponse?.error) {
-    data.error = `Error: ${searchResponse.error}`;
-    res.json(data);
+    responseData.error = `Error: ${searchResponse.error}`;
+    res.json(responseData);
     return;
   }
-  data.message = `${searchResponse.byline_estimate}\n\nSave not implemented yet!`;
-  res.json(data);
+  // Return early if this is a non-confirmed search
+  if (!(req?.query?.confirm === "true")) {
+    responseData.message = `${searchResponse.byline_estimate}\n\nCheck the box below, then click the Start search button again.`;
+    res.json(responseData);
+    return;
+  }
+  // Start full search
+  globalDatabase[req.query.api_key] = Papa.parse(csvTemplate.toString());
+  globalDatabase[req.query.api_key].running = true;
+  // Write first page to data object and CSV
+  for (const result in searchResponse["organic_results"]) {
+    if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+      console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+    } else {
+      const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+      globalDatabase[req.query.api_key].data.push(formattedRow);
+    }
+  }
+  // Repeat API call for all remaining pages of search results
+  // TODO: Parse video card results, add error handling/wait period for each request
+  if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
+    while (searchResponse?.serpapi_pagination?.next) {
+      console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
+      // Fetch next page of search results
+      searchResponse = await getSearchResults({
+        apiKey: req.query.api_key,
+        url: searchResponse.serpapi_pagination.next
+      });
+      // Write  page to data object and CSV
+      for (const result in searchResponse["organic_results"]) {
+        if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+          console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+        } else {
+          const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+          globalDatabase[req.query.api_key].data.push(formattedRow);
+        }
+      }
+    }
+  }
+  // TODO: Return data as CSV file
+  responseData.message = "Search done!";
+    res.json(responseData);
+    return;
 });
 
 // Start the HTTP server

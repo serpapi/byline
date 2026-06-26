@@ -59,10 +59,13 @@ document.getElementById("byline-start-btn").addEventListener("click", async func
         api_key: document.getElementById("byline-apikey").value,
         author: document.getElementById("byline-author").value,
         website: document.getElementById("byline-website").value,
-        filters: document.getElementById("byline-filters").value
+        filters: document.getElementById("byline-filters").value,
+        confirm: document.getElementById("byline-confirm-check").checked
     });
     const url = new URL(`${hostname}/api.json`);
     url.search = params.toString();
+    // Uncheck the confirm box, so subsequent requests are not automatically granted
+    document.getElementById("byline-confirm-check").checked = false;
     // Send request to SerpApi server
     console.log("Sending request to SerpApi:", url.href);
     let json;
