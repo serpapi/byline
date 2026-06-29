@@ -34,6 +34,17 @@ app.get("/api.json", async function (req, res) {
     res.json(responseData);
     return;
   }
+  // Check if this is a search status request
+  if (req.query.api_key in globalDatabase) {
+    if (globalDatabase[req.query.api_key].running) {
+      responseData.status = "running";
+      responseData.message = `Saved ${globalDatabase[req.query.api_key].data.length} results, still searching...`
+      res.json(responseData);
+      return
+    } else {
+      // TODO: Implement sending final status
+    }
+  }
   // Check for author
   if (!req?.query?.author) {
     responseData.error = "No author was provided!";
@@ -94,6 +105,9 @@ app.get("/api.json", async function (req, res) {
       globalDatabase[req.query.api_key].data.push(formattedRow);
     }
   }
+  // Send loading status to front end
+  responseData.status = "running";
+  res.json(responseData);
   // Repeat API call for all remaining pages of search results
   // TODO: Parse video card results, add error handling/wait period for each request
   if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {

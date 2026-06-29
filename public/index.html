@@ -56,8 +56,11 @@
             <strong>Error!</strong> <span id="byline-error-message"></span>
         </div>
         <!-- Loading alert -->
-        <div id="byline-loading" class="alert alert-secondary mb-3 mb-md-4 d-none" role="alert">
-            <strong>Loading, please wait...</strong>
+        <div id="byline-loading" class="alert alert-secondary mb-3 mb-md-4 d-none fw-bold" role="alert">
+            <span id="byline-loading-text">Loading, please wait...</span>
+            <div class="spinner-border float-end" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </div>
         <!-- Confirmation alert -->
         <div id="byline-confirm-start" class="alert alert-primary mb-3 mb-md-4 d-none" role="alert">
