@@ -6,6 +6,7 @@ import express, { json } from "express";
 import serveStatic from "serve-static";
 import path from "node:path";
 import Papa from 'papaparse';
+import fs from "node:fs/promises";
 import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted } from "./main.js";
 
 // Initialize Express
@@ -13,6 +14,7 @@ const app = express();
 
 // Paths to primary directories
 const publicDir = path.resolve(import.meta.dirname, '../public');
+const tmpFilesDir = path.resolve(import.meta.dirname, '../public/tmp');
 const mainDir = path.resolve(import.meta.dirname, '../');
 
 // Initialize database for running all search jobs
@@ -40,9 +42,10 @@ app.get("/api.json", async function (req, res) {
       responseData.message = `Saved ${globalDatabase[req.query.api_key].data.length} results, still searching...`
       res.json(responseData);
       return
-    } else {
+    } else if (globalDatabase[req.query.api_key].done) {
       // TODO: Implement sending final status
-      responseData.error = "Sending final search results not supported yet!";
+      responseData.status = "done";
+      responseData.message = `Archive ready for download: ${globalDatabase[req.query.api_key].download}`;
       res.json(responseData);
       return;
     }
@@ -97,9 +100,9 @@ app.get("/api.json", async function (req, res) {
     return;
   }
   // Start full search
-  globalDatabase[req.query.api_key] = Papa.parse(csvTemplate.toString());
+  globalDatabase[req.query.api_key] = Papa.parse(csvTemplate, papaParseOptions);
   globalDatabase[req.query.api_key].running = true;
-  // Write first page to data object and CSV
+  // Write first page to data object
   for (const result in searchResponse["organic_results"]) {
     if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
       console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
@@ -132,8 +135,17 @@ app.get("/api.json", async function (req, res) {
       }
     }
   }
+  // Move results to CSV file for downloading
+  const exportFile = `${req.query.api_key}.csv`;
+  const exportPath = path.resolve(tmpFilesDir, exportFile);
+  const csvExport = Papa.unparse(globalDatabase[req.query.api_key], papaParseOptions);
+  await fs.writeFile(path.resolve(exportPath), csvExport);
   console.log(`[${accountData["account_email"]}] Finished search!`);
-  responseData.status = "done";
+  // Update database entry
+  globalDatabase[req.query.api_key] = {
+    done: true,
+    download: `/tmp/${exportFile}`
+  }
 });
 
 // Start the HTTP server

@@ -88,6 +88,10 @@ async function switchPage(apiKey) {
             console.log('Data received:', data);
             if (data?.status === "running") {
                 showLoading(data.message);
+            } else if (data?.status === "done") {
+                // TODO: Make this a clickable download link
+                showLoading(data.message);
+                status = "done";
             }
         } catch (error) {
             console.error('Fetch error:', error);

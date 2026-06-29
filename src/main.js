@@ -6,7 +6,8 @@ const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","S
 // Settings to use for parsing CSV files
 const papaParseOptions = {
     quotes: true,
-    header: true
+    header: true,
+    skipEmptyLines: true
 };
 
 /**
