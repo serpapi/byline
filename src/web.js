@@ -28,7 +28,6 @@ app.use(serveStatic(publicDir));
 app.get("/api.json", async function (req, res) {
   const responseData = {};
   // Check for API key
-  console.log("\nReceived data:", req.query);
   if (!req?.query?.api_key) {
     responseData.error = "No API key was provided!";
     res.json(responseData);
@@ -83,7 +82,8 @@ app.get("/api.json", async function (req, res) {
     site: req.query.website.trim(),
     filters: searchFilters,
     apiKey: req.query.api_key,
-    engine: "google"
+    engine: "google",
+    serpAccount: (accountData["account_email"] || "Unknown")
   });
   if (searchResponse?.error) {
     responseData.error = `Error: ${searchResponse.error}`;
@@ -102,7 +102,7 @@ app.get("/api.json", async function (req, res) {
   // Write first page to data object and CSV
   for (const result in searchResponse["organic_results"]) {
     if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-      console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+      console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
     } else {
       const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
       globalDatabase[req.query.api_key].data.push(formattedRow);
@@ -115,7 +115,7 @@ app.get("/api.json", async function (req, res) {
   // TODO: Parse video card results, add error handling/wait period for each request
   if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
     while (searchResponse?.serpapi_pagination?.next) {
-      console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
+      console.log(`[${accountData["account_email"]}] Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
       // Fetch next page of search results
       searchResponse = await getSearchResults({
         apiKey: req.query.api_key,
@@ -124,7 +124,7 @@ app.get("/api.json", async function (req, res) {
       // Write  page to data object and CSV
       for (const result in searchResponse["organic_results"]) {
         if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-          console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+          console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
         } else {
           const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
           globalDatabase[req.query.api_key].data.push(formattedRow);
@@ -132,7 +132,7 @@ app.get("/api.json", async function (req, res) {
       }
     }
   }
-  console.log("Finished search");
+  console.log(`[${accountData["account_email"]}] Finished search!`);
   responseData.status = "done";
 });
 

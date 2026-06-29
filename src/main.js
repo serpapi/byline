@@ -34,6 +34,7 @@ async function getAccountInfo(api_key) {
  * Get results for search query using SerpApi Google Light Search.
  * @param {object} settings The settings configuration.
  * @param {string} settings.apiKey The API key for SerpApi.
+ * @param {string} settings.serpAccount The email address of the SerpApi account being used to search.
  * @param {string} settings.author The author or creator to search.
  * @param {string} settings.site The site to search.
  * @param {Array} settings.filters The list of strings to ignore in the URL path. Engines besides Google will only use the first filter.
@@ -69,7 +70,7 @@ async function getSearchResults(settings) {
             api_key: settings.apiKey
         });
         url = ("https://serpapi.com/search?" + options);
-        console.log(`Searching ${settings.engine} with query: ${query}`);
+        console.log(`[${settings?.serpAccount || "Unknown account"}] Searching ${settings.engine} with query: ${query}`);
     }
     // Make API call
     try {

@@ -237,7 +237,8 @@ async function startSearch(args) {
         site: args["site"].trim(),
         filters: searchFilters,
         apiKey: globalApiKey,
-        engine: searchEngine
+        engine: searchEngine,
+        serpAccount: (accountData["account_email"] || "Unknown")
     });
     if (searchResponse?.error) {
         console.log(`${searchResponse.error}\n`);
@@ -267,7 +268,8 @@ async function startSearch(args) {
             // Fetch next page of search results
             searchResponse = await getSearchResults({
                 apiKey: globalApiKey,
-                url: searchResponse.serpapi_pagination.next
+                url: searchResponse.serpapi_pagination.next,
+                serpAccount: (accountData["account_email"] || "Unknown")
             });
             // Write  page to data object and CSV
             for (const result in searchResponse["organic_results"]) {
