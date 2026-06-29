@@ -43,6 +43,9 @@ app.get("/api.json", async function (req, res) {
       return
     } else {
       // TODO: Implement sending final status
+      responseData.error = "Sending final search results not supported yet!";
+      res.json(responseData);
+      return;
     }
   }
   // Check for author
@@ -129,10 +132,8 @@ app.get("/api.json", async function (req, res) {
       }
     }
   }
-  // TODO: Return data as CSV file
-  responseData.message = "Search done!";
-    res.json(responseData);
-    return;
+  console.log("Finished search");
+  responseData.status = "done";
 });
 
 // Start the HTTP server
