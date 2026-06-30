@@ -8,6 +8,8 @@ const loadingMessageEl = document.getElementById("byline-loading-text");
 const confirmEl = document.getElementById("byline-confirm-start");
 const confirmMessageEl = document.getElementById("byline-estimate");
 const startBtn = document.getElementById("byline-start-btn");
+const downloadEl = document.getElementById("byline-download");
+const downloadBtn = document.getElementById("byline-download-btn");
 
 // Form values
 const apiField = document.getElementById("byline-apikey");
@@ -36,6 +38,7 @@ document.addEventListener("DOMContentLoaded", function () {
  */
 function showError(message) {
     errorMessageEl.innerText = message;
+    downloadEl.classList.add("d-none");
     loadingEl.classList.add("d-none");
     confirmEl.classList.add("d-none");
     errorEl.classList.remove("d-none");
@@ -51,6 +54,7 @@ function showLoading(message = null) {
     } else {
         loadingMessageEl.innerText = "Loading, please wait...";
     }
+    downloadEl.classList.add("d-none");
     errorEl.classList.add("d-none");
     confirmEl.classList.add("d-none");
     loadingEl.classList.remove("d-none");
@@ -62,9 +66,21 @@ function showLoading(message = null) {
  */
 function showConfirmation(message) {
     confirmMessageEl.innerText = message;
+    downloadEl.classList.add("d-none");
     errorEl.classList.add("d-none");
     loadingEl.classList.add("d-none");
     confirmEl.classList.remove("d-none");
+}
+
+function showDownload(path) {
+    // Set download link and file name
+    downloadBtn.setAttribute("download", "Byline Export - " + authorField.value);
+    downloadBtn.setAttribute("href", path);
+    // Show download alert and hide all other alerts
+    errorEl.classList.add("d-none");
+    loadingEl.classList.add("d-none");
+    confirmMessageEl.classList.add("d-none");
+    downloadEl.classList.remove("d-none");
 }
 
 async function switchPage(apiKey) {
@@ -90,7 +106,7 @@ async function switchPage(apiKey) {
                 showLoading(data.message);
             } else if (data?.status === "done") {
                 // TODO: Make this a clickable download link
-                showLoading(data.message);
+                showDownload(data.download);
                 status = "done";
             }
         } catch (error) {
@@ -103,6 +119,7 @@ async function switchPage(apiKey) {
 // Start button
 startBtn.addEventListener("click", async function () {
     // Switch to loading message
+    document.documentElement.dataset.loading = "true";
     showLoading();
     // Create request for server
     const params = new URLSearchParams({
@@ -123,11 +140,14 @@ startBtn.addEventListener("click", async function () {
         const response = await fetch(url);
         json = await response.json();
     } catch (error) {
+        document.documentElement.dataset.loading = "false";
         console.log(error);
         showError(error);
     }
     console.log("Got response from server:", json);
-    if (json?.status === "running") {
+    if (json?.status === "done") {
+        showDownload(json.download);
+    } else if (json?.status === "running") {
         await switchPage(apiField.value);
     } else if (json?.message) {
         showConfirmation(json.message);
@@ -136,4 +156,5 @@ startBtn.addEventListener("click", async function () {
     } else {
         showError("Could not read response from server.");
     }
+    document.documentElement.dataset.loading = "false";
 })

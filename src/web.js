@@ -43,9 +43,8 @@ app.get("/api.json", async function (req, res) {
       res.json(responseData);
       return
     } else if (globalDatabase[req.query.api_key].done) {
-      // TODO: Implement sending final status
       responseData.status = "done";
-      responseData.message = `Archive ready for download: ${globalDatabase[req.query.api_key].download}`;
+      responseData.download = globalDatabase[req.query.api_key].download;
       res.json(responseData);
       return;
     }
@@ -146,6 +145,7 @@ app.get("/api.json", async function (req, res) {
     done: true,
     download: `/tmp/${exportFile}`
   }
+  // TODO: Allow user to run a new search without server restart, automatically clean up database entries over time, don't use API keys as file names
 });
 
 // Start the HTTP server
