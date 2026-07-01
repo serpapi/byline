@@ -76,6 +76,7 @@
         <div id="byline-download" class="alert alert-primary mb-3 mb-md-4 d-none" role="alert">
             <p>Your article list is ready for download. You can open and edit it in <a href="https://www.microsoft.com/en-us/microsoft-365/excel" target="_blank">Microsoft Excel</a>, <a href="https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891" target="_blank">Apple Numbers</a>, <a href="https://www.libreoffice.org/download/" target="_blank">LibreOffice</a>, <a href="https://docs.google.com/" target="_blank">Google Docs</a>, and other spreadsheet applications.</p>
             <a class="btn btn-primary" id="byline-download-btn" href="#" role="button">Download</a>
+            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#newSearchModal">Start new search</button>
         </div>
         <!-- Byline settings -->
         <div class="card mb-3 mb-md-4">
@@ -113,6 +114,25 @@
                     <div id="byline-filters-help" class="form-text">
                         URLs containing these strings will be skipped. The list should be comma-separated.
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="newSearchModal" tabindex="-1" aria-labelledby="newSearchModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="newSearchModalLabel">Delete existing search?</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to start a new search? <b>This will delete your current saved links, so running the same search again may cost search credits.</b>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="byline-confirm-delete">OK</button>
                 </div>
             </div>
         </div>

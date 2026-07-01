@@ -52,6 +52,26 @@ function hashKey(key) {
   return crypto.createHash("sha256").update(key).digest("hex");
 }
 
+// API call for deleting existing backup so a new one can be created
+app.get("/delete.json", async function (req, res) {
+  const responseData = {};
+  if (!req?.query?.api_key) {
+    responseData.error = "No API key was provided!";
+    res.json(responseData);
+    return;
+  }
+  // Create hashed key used for the global database
+  const hashedKey = hashKey(req.query.api_key);
+  if (hashedKey in globalDatabase) {
+    delete globalDatabase[hashedKey];
+    // TODO: Clean up CSV file as well
+    console.log(`Deleted ${hashedKey} from database.`);
+  }
+  responseData.message = "done";
+  res.json(responseData);
+  console.log(globalDatabase)
+});
+
 // API for communication with frontend page
 app.get("/api.json", async function (req, res) {
   const responseData = {};
@@ -173,7 +193,7 @@ app.get("/api.json", async function (req, res) {
     done: true,
     download: `/tmp/${exportFile}`
   }
-  // TODO: Allow user to run a new search without server restart, automatically clean up database entries over time
+  // TODO: Automatically clean up database entries over time
 });
 
 // Start the HTTP server

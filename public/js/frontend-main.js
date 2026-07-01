@@ -37,11 +37,19 @@ document.addEventListener("DOMContentLoaded", function () {
  * @param {String} message
  */
 function showError(message) {
+    // Set message
     errorMessageEl.innerText = message;
+    // Hide other elements
     downloadEl.classList.add("d-none");
     loadingEl.classList.add("d-none");
     confirmEl.classList.add("d-none");
     errorEl.classList.remove("d-none");
+    // Enable form elements
+    apiField.removeAttribute("disabled");
+    authorField.removeAttribute("disabled");
+    websiteField.removeAttribute("disabled");
+    filtersField.removeAttribute("disabled");
+    startBtn.removeAttribute("disabled");
 }
 
 /**
@@ -49,14 +57,23 @@ function showError(message) {
  * @param {String} message
  */
 function showLoading(message = null) {
+    // Set message
     if (message) {
         loadingMessageEl.innerText = message;
     } else {
         loadingMessageEl.innerText = "Loading, please wait...";
     }
+    // Hide other elements
     downloadEl.classList.add("d-none");
     errorEl.classList.add("d-none");
     confirmEl.classList.add("d-none");
+    // Disable form elements and buttons
+    apiField.setAttribute("disabled", "true");
+    authorField.setAttribute("disabled", "true");
+    websiteField.setAttribute("disabled", "true");
+    filtersField.setAttribute("disabled", "true");
+    startBtn.setAttribute("disabled", "true");
+    // Show loading element
     loadingEl.classList.remove("d-none");
 }
 
@@ -65,10 +82,20 @@ function showLoading(message = null) {
  * @param {String} message
  */
 function showConfirmation(message) {
+    // Set message
     confirmMessageEl.innerText = message;
+    // Hide other elements
     downloadEl.classList.add("d-none");
     errorEl.classList.add("d-none");
     loadingEl.classList.add("d-none");
+    // Disable form elements
+    apiField.setAttribute("disabled", "true");
+    authorField.setAttribute("disabled", "true");
+    websiteField.setAttribute("disabled", "true");
+    filtersField.setAttribute("disabled", "true");
+    // Enable start button again
+    startBtn.removeAttribute("disabled");
+    // Show confirmation element
     confirmEl.classList.remove("d-none");
 }
 
@@ -84,13 +111,7 @@ function showDownload(path) {
 }
 
 async function switchPage(apiKey) {
-    // Disable form elements and buttons
-    apiField.setAttribute("disabled", "true");
-    authorField.setAttribute("disabled", "true");
-    websiteField.setAttribute("disabled", "true");
-    filtersField.setAttribute("disabled", "true");
-    startBtn.setAttribute("disabled", "true");
-    // Show initial loading message
+    // Show initial loading message and disable form elements
     showLoading();
     let status = "loading";
     // Make API requests to check progress
@@ -115,6 +136,26 @@ async function switchPage(apiKey) {
         }
     }
 }
+
+// Delete button
+document.getElementById("byline-confirm-delete").addEventListener("click", async function () {
+    // Create request for server
+    const req = `${hostname}/delete.json?api_key=${apiField.value}`;
+    try {
+        const response = await fetch(`${hostname}/delete.json?api_key=${apiField.value}`);
+        const data = await response.json();
+        console.log('Data received:', data);
+        if (data?.message === "done") {
+            location.reload();
+        } else {
+            showError("There was an unknown error.");
+        }
+    } catch (error) {
+        console.error('Fetch error:', error);
+        showError(error);
+    }
+
+});
 
 // Start button
 startBtn.addEventListener("click", async function () {
