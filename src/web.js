@@ -18,7 +18,23 @@ const publicDir = path.resolve(import.meta.dirname, '../public');
 const tmpFilesDir = path.resolve(import.meta.dirname, '../public/tmp');
 const mainDir = path.resolve(import.meta.dirname, '../');
 
-// Initialize database for running all search jobs
+/**
+ * The database for ongoing and completed searches. There is a key for each SerpApi account, represented by a hashed API key.
+ * 
+ * @example
+ * {
+ *  'c27ecc686d49...bf1': {
+ *    data: [..],
+ *    errors: [..],
+ *    meta: {..}
+ *    done: false
+ *  },
+ *  'hmfwqwngix9...c83': {
+ *    done: true 
+ *    download: '/tmp/hmfwqwngix9...c83.csv'
+ *  }
+ * }
+ */
 const globalDatabase = {};
 
 // Get command-line arguments
@@ -48,18 +64,17 @@ app.get("/api.json", async function (req, res) {
   // Create hashed key used for the global database
   const hashedKey = hashKey(req.query.api_key);
   // Check if this is a search status request
-  console.log(globalDatabase)
   if (hashedKey in globalDatabase) {
-    if (globalDatabase[hashedKey].running) {
-      responseData.status = "running";
-      responseData.message = `Saved ${globalDatabase[hashedKey].data.length} results, still searching...`
-      res.json(responseData);
-      return
-    } else if (globalDatabase[hashedKey].done) {
+    if (globalDatabase[hashedKey]?.done) {
       responseData.status = "done";
       responseData.download = globalDatabase[hashedKey].download;
       res.json(responseData);
       return;
+    } else {
+      responseData.status = "running";
+      responseData.message = `Saved ${globalDatabase[hashedKey].data.length} results, still searching...`
+      res.json(responseData);
+      return
     }
   }
   // Check for author
