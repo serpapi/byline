@@ -7,6 +7,7 @@ import serveStatic from "serve-static";
 import path from "node:path";
 import Papa from 'papaparse';
 import fs from "node:fs/promises";
+import crypto from "crypto";
 import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted } from "./main.js";
 
 // Initialize Express
@@ -26,6 +27,15 @@ const args = getArgs();
 // Set up serve-static middleware to serve files from the 'public' folder
 app.use(serveStatic(publicDir));
 
+/**
+ * Hashes the provided key using SHA-256
+ * @param {string} key - The plain text API key
+ * @returns {string} - The hex-encoded hash
+ */
+function hashKey(key) {
+  return crypto.createHash("sha256").update(key).digest("hex");
+}
+
 // API for communication with frontend page
 app.get("/api.json", async function (req, res) {
   const responseData = {};
@@ -35,16 +45,19 @@ app.get("/api.json", async function (req, res) {
     res.json(responseData);
     return;
   }
+  // Create hashed key used for the global database
+  const hashedKey = hashKey(req.query.api_key);
   // Check if this is a search status request
-  if (req.query.api_key in globalDatabase) {
-    if (globalDatabase[req.query.api_key].running) {
+  console.log(globalDatabase)
+  if (hashedKey in globalDatabase) {
+    if (globalDatabase[hashedKey].running) {
       responseData.status = "running";
-      responseData.message = `Saved ${globalDatabase[req.query.api_key].data.length} results, still searching...`
+      responseData.message = `Saved ${globalDatabase[hashedKey].data.length} results, still searching...`
       res.json(responseData);
       return
-    } else if (globalDatabase[req.query.api_key].done) {
+    } else if (globalDatabase[hashedKey].done) {
       responseData.status = "done";
-      responseData.download = globalDatabase[req.query.api_key].download;
+      responseData.download = globalDatabase[hashedKey].download;
       res.json(responseData);
       return;
     }
@@ -99,15 +112,15 @@ app.get("/api.json", async function (req, res) {
     return;
   }
   // Start full search
-  globalDatabase[req.query.api_key] = Papa.parse(csvTemplate, papaParseOptions);
-  globalDatabase[req.query.api_key].running = true;
+  globalDatabase[hashedKey] = Papa.parse(csvTemplate, papaParseOptions);
+  globalDatabase[hashedKey].running = true;
   // Write first page to data object
   for (const result in searchResponse["organic_results"]) {
-    if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+    if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
       console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
     } else {
       const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
-      globalDatabase[req.query.api_key].data.push(formattedRow);
+      globalDatabase[hashedKey].data.push(formattedRow);
     }
   }
   // Send loading status to front end
@@ -125,27 +138,27 @@ app.get("/api.json", async function (req, res) {
       });
       // Write  page to data object and CSV
       for (const result in searchResponse["organic_results"]) {
-        if (globalDatabase[req.query.api_key].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
+        if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
           console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
         } else {
           const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
-          globalDatabase[req.query.api_key].data.push(formattedRow);
+          globalDatabase[hashedKey].data.push(formattedRow);
         }
       }
     }
   }
   // Move results to CSV file for downloading
-  const exportFile = `${req.query.api_key}.csv`;
+  const exportFile = `${hashedKey}.csv`;
   const exportPath = path.resolve(tmpFilesDir, exportFile);
-  const csvExport = Papa.unparse(globalDatabase[req.query.api_key], papaParseOptions);
+  const csvExport = Papa.unparse(globalDatabase[hashedKey], papaParseOptions);
   await fs.writeFile(path.resolve(exportPath), csvExport);
   console.log(`[${accountData["account_email"]}] Finished search!`);
   // Update database entry
-  globalDatabase[req.query.api_key] = {
+  globalDatabase[hashedKey] = {
     done: true,
     download: `/tmp/${exportFile}`
   }
-  // TODO: Allow user to run a new search without server restart, automatically clean up database entries over time, don't use API keys as file names
+  // TODO: Allow user to run a new search without server restart, automatically clean up database entries over time
 });
 
 // Start the HTTP server
