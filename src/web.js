@@ -31,7 +31,8 @@ const mainDir = path.resolve(import.meta.dirname, '../');
  *  },
  *  'hmfwqwngix9...c83': {
  *    done: true 
- *    download: '/tmp/hmfwqwngix9...c83.csv'
+ *    download: '/tmp/hmfwqwngix9...c83.csv',
+ *    fullPath: '/Users/me/byline/public/tmp/hmfwqwngix9...c83.csv'
  *  }
  * }
  */
@@ -63,13 +64,24 @@ app.get("/delete.json", async function (req, res) {
   // Create hashed key used for the global database
   const hashedKey = hashKey(req.query.api_key);
   if (hashedKey in globalDatabase) {
+    // Delete the CSV file if it exists
+    try {
+      await fs.unlink(globalDatabase[hashedKey].fullPath);
+      console.log(`[${hashedKey}] Deleted CSV file by user request.`);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        console.log(`[${hashedKey}] Could not find CSV file to delete, skipping.`);
+      } else {
+        console.error(`[${hashedKey}] An error occured:`, err.message);
+      }
+    }
+    // Delete database object
     delete globalDatabase[hashedKey];
     // TODO: Clean up CSV file as well
-    console.log(`Deleted ${hashedKey} from database.`);
+    console.log(`[${hashedKey}] Deleted backup from database.`);
   }
   responseData.message = "done";
   res.json(responseData);
-  console.log(globalDatabase)
 });
 
 // API for communication with frontend page
@@ -133,7 +145,7 @@ app.get("/api.json", async function (req, res) {
     filters: searchFilters,
     apiKey: req.query.api_key,
     engine: "google",
-    serpAccount: (accountData["account_email"] || "Unknown")
+    serpAccount: hashedKey
   });
   if (searchResponse?.error) {
     responseData.error = `Error: ${searchResponse.error}`;
@@ -152,7 +164,7 @@ app.get("/api.json", async function (req, res) {
   // Write first page to data object
   for (const result in searchResponse["organic_results"]) {
     if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-      console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+      console.log(`[${hashedKey}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
     } else {
       const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
       globalDatabase[hashedKey].data.push(formattedRow);
@@ -165,7 +177,7 @@ app.get("/api.json", async function (req, res) {
   // TODO: Parse video card results, add error handling/wait period for each request
   if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
     while (searchResponse?.serpapi_pagination?.next) {
-      console.log(`[${accountData["account_email"]}] Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
+      console.log(`[${hashedKey}] Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
       // Fetch next page of search results
       searchResponse = await getSearchResults({
         apiKey: req.query.api_key,
@@ -174,7 +186,7 @@ app.get("/api.json", async function (req, res) {
       // Write  page to data object and CSV
       for (const result in searchResponse["organic_results"]) {
         if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-          console.log(`[${accountData["account_email"]}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+          console.log(`[${hashedKey}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
         } else {
           const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
           globalDatabase[hashedKey].data.push(formattedRow);
@@ -187,11 +199,12 @@ app.get("/api.json", async function (req, res) {
   const exportPath = path.resolve(tmpFilesDir, exportFile);
   const csvExport = Papa.unparse(globalDatabase[hashedKey], papaParseOptions);
   await fs.writeFile(path.resolve(exportPath), csvExport);
-  console.log(`[${accountData["account_email"]}] Finished search!`);
+  console.log(`[${hashedKey}] Finished search!`);
   // Update database entry
   globalDatabase[hashedKey] = {
     done: true,
-    download: `/tmp/${exportFile}`
+    download: `/tmp/${exportFile}`,
+    fullPath: exportPath
   }
   // TODO: Automatically clean up database entries over time
 });
