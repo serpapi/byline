@@ -57,22 +57,22 @@ function hashKey(key) {
  * Function to delete items more than 24 hours old from global database and storage.
  */
 async function cleanupDatabase() {
-  console.log(`[Server] Running database cleanup on ${Object.keys(globalDatabase).length} items...`);
+  console.log(`[Server] Running database cleanup...`);
   const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
   const nowDate = Date.now();
-  for (const i in globalDatabase) {
+  Object.keys(globalDatabase).forEach(function (item) {
     // Set creation date to now if it's missing
-    if (!("createdDate" in globalDatabase[i])) {
-      globalDatabase[i]["createdDate"] = Number(Date.now());
-      console.log(`[${i}] Database entry was missing creation date, fixed.`);
-      continue;
+    if (!("createdDate" in globalDatabase[item])) {
+      globalDatabase[item]["createdDate"] = nowDate;
+      console.log(`[${item}] Database entry was missing creation date, fixed.`);
+      return;
     }
     // Delete the entry if needed
-    const olderThan24Hours = nowDate - globalDatabase[i]["createdDate"] > twentyFourHoursInMs;
+    const olderThan24Hours = nowDate - globalDatabase[item]["createdDate"] > twentyFourHoursInMs;
     if (olderThan24Hours) {
-      deleteBackup(i);
+      deleteBackup(item);
     }
-  }
+  });
   console.log(`[Server] Database cleanup complete, ${Object.keys(globalDatabase).length} items remaining.`);
 }
 
