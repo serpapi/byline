@@ -91,7 +91,7 @@ async function restoreDatabaseFromDisk() {
         done: true,
         download: `/tmp/${file}`,
         fullPath: fullPath,
-        createdDate: stats.atimeMs
+        createdDate: stats.birthtimeMs
       };
       console.log(`[${hashedKey}] Restored search results from storage.`);
     }
@@ -277,7 +277,7 @@ app.listen(port, () => {
   console.log(`[Server] Web UI is running: http://localhost:${port}`);
 });
 
-// Schedule database cleanup to run each hour
+// Schedule database cleanup at the top of each hour
 const cleanupJob = schedule.scheduleJob("0 * * * *", cleanupDatabase);
 
 // Listen for termination signals
