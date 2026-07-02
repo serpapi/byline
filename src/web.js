@@ -8,6 +8,7 @@ import path from "node:path";
 import Papa from 'papaparse';
 import fs from "node:fs/promises";
 import crypto from "crypto";
+import schedule from "node-schedule";
 import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted } from "./main.js";
 
 // Initialize Express
@@ -28,11 +29,13 @@ const mainDir = path.resolve(import.meta.dirname, '../');
  *    errors: [..],
  *    meta: {..}
  *    done: false
+ *    createdDate: 1783024407134
  *  },
  *  'hmfwqwngix9...c83': {
  *    done: true 
  *    download: '/tmp/hmfwqwngix9...c83.csv',
- *    fullPath: '/Users/me/byline/public/tmp/hmfwqwngix9...c83.csv'
+ *    fullPath: '/Users/me/byline/public/tmp/hmfwqwngix9...c83.csv',
+ *    createdDate: 1783024141669
  *  }
  * }
  */
@@ -41,9 +44,6 @@ const globalDatabase = {};
 // Get command-line arguments
 const args = getArgs();
 
-// Set up serve-static middleware to serve files from the 'public' folder
-app.use(serveStatic(publicDir));
-
 /**
  * Hashes the provided key using SHA-256
  * @param {string} key - The plain text API key
@@ -51,6 +51,29 @@ app.use(serveStatic(publicDir));
  */
 function hashKey(key) {
   return crypto.createHash("sha256").update(key).digest("hex");
+}
+
+/**
+ * Function to delete items more than 24 hours old from global database and storage.
+ */
+async function cleanupDatabase() {
+  console.log(`[Server] Running database cleanup on ${Object.keys(globalDatabase).length} items...`);
+  const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+  const nowDate = Date.now();
+  for (const i in globalDatabase) {
+    // Set creation date to now if it's missing
+    if (!("createdDate" in globalDatabase[i])) {
+      globalDatabase[i]["createdDate"] = Number(Date.now());
+      console.log(`[${i}] Database entry was missing creation date, fixed.`);
+      continue;
+    }
+    // Delete the entry if needed
+    const olderThan24Hours = nowDate - globalDatabase[i]["createdDate"] > twentyFourHoursInMs;
+    if (olderThan24Hours) {
+      deleteBackup(i);
+    }
+  }
+  console.log(`[Server] Database cleanup complete, ${Object.keys(globalDatabase).length} items remaining.`);
 }
 
 /**
@@ -63,10 +86,12 @@ async function restoreDatabaseFromDisk() {
     for (const file of csvFiles) {
       const hashedKey = path.parse(file).name;
       const fullPath = path.resolve(tmpFilesDir, file);
+      const stats = await fs.stat(fullPath);
       globalDatabase[hashedKey] = {
         done: true,
         download: `/tmp/${file}`,
-        fullPath: fullPath
+        fullPath: fullPath,
+        createdDate: stats.atimeMs
       };
       console.log(`[${hashedKey}] Restored search results from storage.`);
     }
@@ -74,6 +99,31 @@ async function restoreDatabaseFromDisk() {
     console.error("Error restoring database from disk:", err.message);
   }
 }
+
+/**
+ * Deletes all data for a given user, represented by their API key, from the global database and /tmp directory.
+ * @param {String} hashedKey The hash of a SerpAPI API key.
+ */
+async function deleteBackup(hashedKey) {
+  if (hashedKey in globalDatabase) {
+    // Delete the CSV file from storage
+    try {
+      await fs.unlink(globalDatabase[hashedKey].fullPath);
+      console.log(`[${hashedKey}] Deleted CSV file.`);
+    } catch (err) {
+      if (err.code === 'ENOENT') {
+        console.log(`[${hashedKey}] Could not find CSV file to delete, skipping.`);
+      } else {
+        console.error(`[${hashedKey}] An error occured deleting the CSV file:`, err.message);
+      }
+    }
+    // Delete database object
+    delete globalDatabase[hashedKey];
+    console.log(`[${hashedKey}] Deleted backup from database.`);
+  } else {
+    console.log(`[${hashedKey}] Backup is not in database, skipping deletion.`);
+  }
+};
 
 // API call for deleting existing backup so a new one can be created
 app.get("/delete.json", async function (req, res) {
@@ -85,22 +135,7 @@ app.get("/delete.json", async function (req, res) {
   }
   // Create hashed key used for the global database
   const hashedKey = hashKey(req.query.api_key);
-  if (hashedKey in globalDatabase) {
-    // Delete the CSV file from storage
-    try {
-      await fs.unlink(globalDatabase[hashedKey].fullPath);
-      console.log(`[${hashedKey}] Deleted CSV file by user request.`);
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        console.log(`[${hashedKey}] Could not find CSV file to delete, skipping.`);
-      } else {
-        console.error(`[${hashedKey}] An error occured:`, err.message);
-      }
-    }
-    // Delete database object
-    delete globalDatabase[hashedKey];
-    console.log(`[${hashedKey}] Deleted backup from database.`);
-  }
+  await deleteBackup(hashedKey);
   responseData.message = "done";
   res.json(responseData);
 });
@@ -180,6 +215,7 @@ app.get("/api.json", async function (req, res) {
     return;
   }
   // Start full search
+  globalDatabase[hashedKey].createdDate = Number(Date.now());
   globalDatabase[hashedKey] = Papa.parse(csvTemplate, papaParseOptions);
   globalDatabase[hashedKey].running = true;
   // Write first page to data object
@@ -226,21 +262,27 @@ app.get("/api.json", async function (req, res) {
     done: true,
     download: `/tmp/${exportFile}`,
     fullPath: exportPath
-  }
-  // TODO: Automatically clean up database entries over time
+  };
 });
 
+// Set up serve-static middleware to serve files from the 'public' folder
+app.use(serveStatic(publicDir));
+
+// Restore backups from storage
 restoreDatabaseFromDisk();
 
 // Start the HTTP server
 const port = (args["port"] || 3500);
 app.listen(port, () => {
-  console.log(`Server is running: http://localhost:${port}`);
+  console.log(`[Server] Web UI is running: http://localhost:${port}`);
 });
+
+// Schedule database cleanup to run each hour
+const cleanupJob = schedule.scheduleJob("0 * * * *", cleanupDatabase);
 
 // Listen for termination signals
 const gracefulShutdown = () => {
-  console.log('Received shutdown signal, closing server...');
+  console.log('[Server] Received shutdown signal, closing server...');
   process.exit(0);
 };
 process.on('SIGINT', gracefulShutdown);
