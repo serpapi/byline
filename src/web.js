@@ -53,6 +53,28 @@ function hashKey(key) {
   return crypto.createHash("sha256").update(key).digest("hex");
 }
 
+/**
+ * Check for existing backups in the /tmp directory, and allow them to be downloaded again.
+ */
+async function restoreDatabaseFromDisk() {
+  try {
+    const files = await fs.readdir(tmpFilesDir);
+    const csvFiles = files.filter(file => file.endsWith(".csv"));
+    for (const file of csvFiles) {
+      const hashedKey = path.parse(file).name;
+      const fullPath = path.resolve(tmpFilesDir, file);
+      globalDatabase[hashedKey] = {
+        done: true,
+        download: `/tmp/${file}`,
+        fullPath: fullPath
+      };
+      console.log(`[${hashedKey}] Restored search results from storage.`);
+    }
+  } catch (err) {
+    console.error("Error restoring database from disk:", err.message);
+  }
+}
+
 // API call for deleting existing backup so a new one can be created
 app.get("/delete.json", async function (req, res) {
   const responseData = {};
@@ -64,7 +86,7 @@ app.get("/delete.json", async function (req, res) {
   // Create hashed key used for the global database
   const hashedKey = hashKey(req.query.api_key);
   if (hashedKey in globalDatabase) {
-    // Delete the CSV file if it exists
+    // Delete the CSV file from storage
     try {
       await fs.unlink(globalDatabase[hashedKey].fullPath);
       console.log(`[${hashedKey}] Deleted CSV file by user request.`);
@@ -77,7 +99,6 @@ app.get("/delete.json", async function (req, res) {
     }
     // Delete database object
     delete globalDatabase[hashedKey];
-    // TODO: Clean up CSV file as well
     console.log(`[${hashedKey}] Deleted backup from database.`);
   }
   responseData.message = "done";
@@ -208,6 +229,8 @@ app.get("/api.json", async function (req, res) {
   }
   // TODO: Automatically clean up database entries over time
 });
+
+restoreDatabaseFromDisk();
 
 // Start the HTTP server
 const port = (args["port"] || 3500);
