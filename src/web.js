@@ -221,7 +221,7 @@ app.get("/api.json", async function (req, res) {
   // Set maximum pagination
   let maxPagination = null;
   if (req?.query?.limit && Number(req.query.limit)) {
-    maxPagination = (Number(args.limit) - 1); // subtracted by 1, because one search was already completed
+    maxPagination = (Number(req.query.limit) - 1); // subtracted by 1, because one search was already completed
   }
   // Start full search
   globalDatabase[hashedKey] = Papa.parse(csvTemplate, papaParseOptions);
