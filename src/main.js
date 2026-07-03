@@ -32,7 +32,7 @@ async function getAccountInfo(api_key) {
 }
 
 /**
- * Get results for search query using SerpApi Google Light Search.
+ * Get results for search query using SerpApi Google Search.
  * @param {object} settings The settings configuration.
  * @param {string} settings.apiKey The API key for SerpApi.
  * @param {string} settings.serpAccount The email address or hashed API key of the active SerpApi account.

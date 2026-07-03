@@ -15,11 +15,12 @@ const downloadBtn = document.getElementById("byline-download-btn");
 const apiField = document.getElementById("byline-apikey");
 const authorField = document.getElementById("byline-author");
 const websiteField = document.getElementById("byline-website");
+const limitField = document.getElementById("byline-limit");
 const filtersField = document.getElementById("byline-filters");
 const confirmCheck = document.getElementById("byline-confirm-check");
 
-// Automatically save all text field values to localStorage
-document.querySelectorAll("input[type='text']").forEach(function () {
+// Automatically save all text/number field values to localStorage
+document.querySelectorAll("input[type='text'],input[type='number']").forEach(function () {
     this.addEventListener("change", function (event) {
         localStorage.setItem(event.target.id, event.target.value);
     })
@@ -48,6 +49,7 @@ function showError(message) {
     apiField.removeAttribute("disabled");
     authorField.removeAttribute("disabled");
     websiteField.removeAttribute("disabled");
+    limitField.removeAttribute("disabled");
     filtersField.removeAttribute("disabled");
     startBtn.removeAttribute("disabled");
 }
@@ -71,6 +73,7 @@ function showLoading(message = null) {
     apiField.setAttribute("disabled", "true");
     authorField.setAttribute("disabled", "true");
     websiteField.setAttribute("disabled", "true");
+    limitField.setAttribute("disabled", "true");
     filtersField.setAttribute("disabled", "true");
     startBtn.setAttribute("disabled", "true");
     // Show loading element
@@ -92,6 +95,7 @@ function showConfirmation(message) {
     apiField.setAttribute("disabled", "true");
     authorField.setAttribute("disabled", "true");
     websiteField.setAttribute("disabled", "true");
+    limitField.setAttribute("disabled", "true");
     filtersField.setAttribute("disabled", "true");
     // Enable start button again
     startBtn.removeAttribute("disabled");
@@ -167,6 +171,7 @@ startBtn.addEventListener("click", async function () {
         api_key: apiField.value,
         author: authorField.value,
         website: websiteField.value,
+        limit: limitField.value,
         filters: filtersField.value,
         confirm: confirmCheck.checked
     });

@@ -211,7 +211,7 @@ async function startSearch(args) {
         }
     }
     // Check for engine
-    const searchEngine = (args["engine"] || "google");
+    const searchEngine = (args?.engine || "google");
     // Check for search filters
     const searchFilters = (args?.filters?.split(",") || []);
     // Show welcome message and account status
@@ -245,6 +245,14 @@ async function startSearch(args) {
         process.exit(1);
     }
     console.log(`${searchResponse.byline_estimate}\n`);
+    // Set maximum pagination and warn user if one is not configured
+    let maxPagination = null;
+    if (args.limit && Number(args.limit)) {
+        maxPagination = (Number(args.limit) - 1); // subtracted by 1, because one search was already completed
+        console.log(`Search will end after ${Number(args.limit) - 1} more pages of results.\n`);
+    } else {
+        console.log("No search limit specified! This could potentially use hundreds of search credits for longer search queries.\n");
+    }
     const answer = await askUser(`Type "start" to start:`);
     if (answer != "start") {
         console.log("Search cancelled.");
@@ -263,7 +271,9 @@ async function startSearch(args) {
     // Repeat API call for all remaining pages of search results
     // TODO: Parse video card results, add error handling/wait period for each request
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
-        while (searchResponse?.serpapi_pagination?.next) {
+        let nextPageExists = searchResponse?.serpapi_pagination?.next;
+        let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
+        while (searchResponse?.serpapi_pagination?.next && searchStillAllowed) {
             console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
             // Fetch next page of search results
             searchResponse = await getSearchResults({
@@ -271,7 +281,7 @@ async function startSearch(args) {
                 url: searchResponse.serpapi_pagination.next,
                 serpAccount: (accountData["account_email"] || "Unknown")
             });
-            // Write  page to data object and CSV
+            // Write page to data object and CSV
             for (const result in searchResponse["organic_results"]) {
                 if (globalData.data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
                     console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
@@ -281,10 +291,12 @@ async function startSearch(args) {
                 }
             }
             await writeToCsv(filePath, globalData);
+            // Update counter for remaining pages
+            searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
         }
     }
     // Exit
-    console.log("Save complete!");
+    console.log(`Save complete with ${searchResponse?.serpapi_pagination?.current} pages!`);
     process.exit();
 }
 

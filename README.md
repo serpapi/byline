@@ -25,7 +25,7 @@ node src/cli.js -login
 Then run Byline with `-author` and `-site` options to create the link list:
 
 ```bash
-node src/cli.js -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/"
+node src/cli.js -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20
 ```
 
 You can create backups of links with [Monolith](https://github.com/Y2Z/monolith) installed:

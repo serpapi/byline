@@ -208,15 +208,24 @@ app.get("/api.json", async function (req, res) {
     res.json(responseData);
     return;
   }
-  // Return early if this is a non-confirmed search
+  // Return early if this is a non-confirmed search, and warn user if maximum pagination is not enabled
   if (!(req?.query?.confirm === "true")) {
-    responseData.message = `${searchResponse.byline_estimate}\n\nCheck the box below, then click the Start search button again.`;
+    if (req?.query?.limit && Number(req.query.limit)) {
+      responseData.message = `${searchResponse.byline_estimate}\n\nSearch will end after ${Number(req.query.limit) - 1} more pages of results.\n\nCheck the box below, then click the Start search button again.`;
+    } else {
+      responseData.message = `${searchResponse.byline_estimate}\n\nNo search limit specified! This could potentially use hundreds of search credits for longer search queries.\n\nCheck the box below, then click the Start search button again.`;
+    }
     res.json(responseData);
     return;
   }
+  // Set maximum pagination
+  let maxPagination = null;
+  if (req?.query?.limit && Number(req.query.limit)) {
+    maxPagination = (Number(args.limit) - 1); // subtracted by 1, because one search was already completed
+  }
   // Start full search
-  globalDatabase[hashedKey].createdDate = Number(Date.now());
   globalDatabase[hashedKey] = Papa.parse(csvTemplate, papaParseOptions);
+  globalDatabase[hashedKey].createdDate = Number(Date.now());
   globalDatabase[hashedKey].running = true;
   // Write first page to data object
   for (const result in searchResponse["organic_results"]) {
@@ -233,14 +242,16 @@ app.get("/api.json", async function (req, res) {
   // Repeat API call for all remaining pages of search results
   // TODO: Parse video card results, add error handling/wait period for each request
   if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
-    while (searchResponse?.serpapi_pagination?.next) {
+    let nextPageExists = searchResponse?.serpapi_pagination?.next;
+    let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
+    while (searchResponse?.serpapi_pagination?.next && searchStillAllowed) {
       console.log(`[${hashedKey}] Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
       // Fetch next page of search results
       searchResponse = await getSearchResults({
         apiKey: req.query.api_key,
         url: searchResponse.serpapi_pagination.next
       });
-      // Write  page to data object and CSV
+      // Write page to data object and CSV
       for (const result in searchResponse["organic_results"]) {
         if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
           console.log(`[${hashedKey}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
@@ -249,6 +260,8 @@ app.get("/api.json", async function (req, res) {
           globalDatabase[hashedKey].data.push(formattedRow);
         }
       }
+      // Update counter for remaining pages
+      searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
     }
   }
   // Move results to CSV file for downloading
@@ -256,7 +269,7 @@ app.get("/api.json", async function (req, res) {
   const exportPath = path.resolve(tmpFilesDir, exportFile);
   const csvExport = Papa.unparse(globalDatabase[hashedKey], papaParseOptions);
   await fs.writeFile(path.resolve(exportPath), csvExport);
-  console.log(`[${hashedKey}] Finished search!`);
+  console.log(`[${hashedKey}] Finished search with ${searchResponse?.serpapi_pagination?.current} pages.`);
   // Update database entry
   globalDatabase[hashedKey] = {
     done: true,
