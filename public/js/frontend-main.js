@@ -161,6 +161,11 @@ document.getElementById("byline-confirm-delete").addEventListener("click", async
 
 });
 
+// Start over button
+document.getElementById("byline-start-over-btn").addEventListener("click", function() {
+    location.reload();
+})
+
 // Start button
 startBtn.addEventListener("click", async function () {
     // Switch to loading message
