@@ -210,10 +210,12 @@ app.get("/api.json", async function (req, res) {
   }
   // Return early if this is a non-confirmed search, and warn user if maximum pagination is not enabled
   if (!(req?.query?.confirm === "true")) {
+    // Assume the intiial search consumed one search credit, instead of pinging the account API again
+    const remainingAccountSearches = Number(accountData.total_searches_left) - 1;
     if (req?.query?.limit && Number(req.query.limit)) {
-      responseData.message = `${searchResponse.byline_estimate}\n\nSearch will end after ${Number(req.query.limit) - 1} more pages of results.\n\nCheck the box below, then click the Start search button again.`;
+      responseData.message = `${searchResponse.byline_estimate}\n\nSearch will end after ${Number(req.query.limit) - 1} more pages of results, using ${Number(req.query.limit) - 1} credits. You have ${remainingAccountSearches} credits remaining.\n\nCheck the box below, then click the Start search button again.`;
     } else {
-      responseData.message = `${searchResponse.byline_estimate}\n\nNo search limit specified! This could potentially use hundreds of search credits for longer search queries.\n\nCheck the box below, then click the Start search button again.`;
+      responseData.message = `${searchResponse.byline_estimate}\n\nNo search limit specified! This could potentially use hundreds of search credits for longer search queries. You have ${remainingAccountSearches} credits remaining.\n\nCheck the box below, then click the Start search button again.`;
     }
     res.json(responseData);
     return;
