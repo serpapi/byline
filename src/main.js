@@ -91,15 +91,12 @@ async function getSearchResults(settings) {
     // Add estimate for searches remaining, if this is the first search for the query
     if (!settings.url) {
         let returnData = {};
-        const totalResults = response?.search_information?.total_results;
         const firstPageResults = response?.organic_results?.length;
-        if (totalResults && response?.serpapi_pagination?.next) {
-            // There is at least one more page of results, and a rough estimate is available
-            response.byline_estimate = `Found ${totalResults} results. This could require up to ${Math.ceil(totalResults / 10)} searches to fetch all results.`;
-        } else if (firstPageResults && response?.serpapi_pagination?.other_pages) {
+        const remainingPages = response?.serpapi_pagination?.other_pages;
+        if (firstPageResults && remainingPages) {
             // There is at least one more page of results, but no estimate is available
-            const lastPage = Math.max(...Object.keys(response.serpapi_pagination.other_pages));
-            response.byline_estimate = `Found ${firstPageResults} results on first page. This will require at least ${lastPage} searches to fetch all results.`;
+            const lastPage = Math.max(...Object.keys(remainingPages));
+            response.byline_estimate = `Found ${firstPageResults} ${firstPageResults > 1 ? "results" : "result"} on first page. This will require at least ${lastPage} searches to fetch all results.`;
         } else if (firstPageResults > 0) {
             // There are no more pages of results
             response.byline_estimate = `Found ${firstPageResults} results and no more pages.`;
