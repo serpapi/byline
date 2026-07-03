@@ -210,8 +210,6 @@ async function startSearch(args) {
             }
         }
     }
-    // Check for engine
-    const searchEngine = (args?.engine || "google");
     // Check for search filters
     const searchFilters = (args?.filters?.split(",") || []);
     // Show welcome message and account status
@@ -237,7 +235,7 @@ async function startSearch(args) {
         site: args["site"].trim(),
         filters: searchFilters,
         apiKey: globalApiKey,
-        engine: searchEngine,
+        engine: "google",
         serpAccount: (accountData["account_email"] || "Unknown")
     });
     if (searchResponse?.error) {
