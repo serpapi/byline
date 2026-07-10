@@ -1,0 +1,9 @@
+*.csv
+.DS_Store
+.env
+*byline-settings.txt
+backup/*
+public/tmp/*.csv
+.git
+.gitignore
+Thumbs.db

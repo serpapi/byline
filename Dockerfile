@@ -1,0 +1,23 @@
+FROM node:26-alpine
+
+# Set up node server and dependencies
+
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+
+WORKDIR /home/node/app
+
+COPY package*.json ./
+
+RUN chown -R node:node /home/node/app/package*.json
+
+USER node
+
+RUN npm install --ignore-scripts
+
+COPY --chown=node:node . .
+
+# Run server
+
+EXPOSE 8080
+
+CMD [ "node", "src/web.js", "-port", "8080" ]

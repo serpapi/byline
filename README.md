@@ -14,6 +14,13 @@ node src/web.js
 
 You can change the port with `-port 80`.
 
+The web server can also run in Docker or another compatible container engine:
+
+```bash
+docker build -t "byline:Dockerfile" .
+docker run -p 80:8080 -d --restart on-failure "byline:main"
+```
+
 ### Using The CLI Application
 
 First, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file:
