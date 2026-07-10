@@ -91,7 +91,7 @@ async function getSearchResults(settings) {
     // Add estimate for searches remaining, if this is the first search for the query
     if (!settings.url) {
         let returnData = {};
-        const firstPageResults = response?.organic_results?.length;
+        const firstPageResults = (response?.organic_results?.length ?? 0) + (response?.inline_videos?.length ?? 0);
         const remainingPages = response?.serpapi_pagination?.other_pages;
         if (firstPageResults && remainingPages) {
             // There is at least one more page of results, but no estimate is available
