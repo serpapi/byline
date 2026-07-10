@@ -110,19 +110,46 @@ async function getSearchResults(settings) {
 }
 
 /**
- * Convert a SerpAPI organic search result into an object for use with Papa Parse.
+ * Combine all JSON objects that could contain links to web articles or videos.
+ * @param {object} searchResponse A JSON response from SerpApi
+ * @returns {Array}
+ */
+function getAllLinks(searchResponse) {
+    const organicResults = searchResponse?.organic_results || [];
+    const inlineVideos = searchResponse?.inline_videos || [];
+    const visualStories = searchResponse?.visual_stories || [];
+    const inlineImages = searchResponse?.inline_images || [];
+    return [...organicResults, ...inlineVideos, ...visualStories, ...inlineImages];
+}
+
+/**
+ * Convert a SerpAPI result into an object for use with Papa Parse.
  * @param {object} searchResult An item from an organic_results API response.
  * @returns {object} Object for Papa Parse data, representing a row in the CSV export.
  */
 function writeAsFormatted(searchResult) {
-    const response = {
-        "Website": (searchResult?.source || searchResult?.platform || new URL(searchResult?.link).hostname || ""),
-        "Title": (searchResult.title || ""),
-        "Link": (searchResult.link || ""),
-        "Snippet": (searchResult?.snippet || ""),
-        "Language": (searchResult?.about_this_result?.languages?.toString() || "")
+    // Set title, link, source, snippet, and language
+    let response;
+    if (searchResult?.source_name && searchResult?.original) {
+        // Inline image results: https://serpapi.com/google-inline-images
+        response = {
+            "Website": (searchResult?.source_name || new URL(searchResult?.source).hostname),
+            "Title": (searchResult?.title || ""),
+            "Link": (searchResult?.source || "")
+        }
+    } else {
+        // Organic results: https://serpapi.com/organic-results
+        // Inline videos: https://serpapi.com/inline-videos
+        // Visual stories: https://serpapi.com/visual-stories
+        response = {
+            "Website": (searchResult?.source || searchResult?.platform || new URL(searchResult?.link).hostname),
+            "Title": (searchResult?.title || ""),
+            "Link": (searchResult?.link || ""),
+            "Snippet": (searchResult?.snippet || ""),
+            "Language": (searchResult?.about_this_result?.languages || "")
+        }
     }
-    // Create formatted date strings
+    // Set formatted date strings
     if (searchResult?.date) {
         let publishedDate;
         let currentDate = new Date();
@@ -178,4 +205,4 @@ function getArgs() {
     return result;
 }
 
-export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs }
+export { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs, getAllLinks }

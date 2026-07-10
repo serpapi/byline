@@ -7,7 +7,7 @@ import { spawn, execSync } from "node:child_process";
 import { env, loadEnvFile, stdin, stdout } from 'node:process';
 import path from "node:path";
 import Papa from 'papaparse';
-import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs } from "./main.js";
+import { getAccountInfo, getSearchResults, writeAsFormatted, csvTemplate, papaParseOptions, getArgs, getAllLinks } from "./main.js";
 import { glob } from "node:fs";
 
 const rl = readline.createInterface({ input: stdin, output: stdout });
@@ -260,7 +260,7 @@ async function startSearch(args) {
         process.exit();
     }
     // Write first page to data object and CSV
-    for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+    for (const result of getAllLinks(searchResponse)) {
         if (globalData.data.some(item => item.Link === result.link)) {
             console.log(`URL already saved, skipped: ${result.link}`);
         } else {
@@ -283,7 +283,7 @@ async function startSearch(args) {
                 serpAccount: (accountData["account_email"] || "Unknown")
             });
             // Write page to data object and CSV
-            for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+            for (const result of getAllLinks(searchResponse)) {
                 if (globalData.data.some(item => item.Link === result.link)) {
                     console.log(`URL already saved, skipped: ${result.link}`);
                 } else {

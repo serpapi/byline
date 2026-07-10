@@ -9,7 +9,7 @@ import Papa from 'papaparse';
 import fs from "node:fs/promises";
 import crypto from "crypto";
 import schedule from "node-schedule";
-import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted } from "./main.js";
+import { getArgs, getAccountInfo, csvTemplate, papaParseOptions, getSearchResults, writeAsFormatted, getAllLinks } from "./main.js";
 
 // Initialize Express
 const app = express();
@@ -230,7 +230,7 @@ app.get("/api.json", async function (req, res) {
   globalDatabase[hashedKey].createdDate = Number(Date.now());
   globalDatabase[hashedKey].running = true;
   // Write first page to data object
-  for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+  for (const result of getAllLinks(searchResponse)) {
     if (globalDatabase[hashedKey].data.some(item => item.Link === result.link)) {
       console.log(`[${hashedKey}] URL already saved, skipped: ${result.link}`);
     } else {
@@ -254,7 +254,7 @@ app.get("/api.json", async function (req, res) {
         url: searchResponse.serpapi_pagination.next
       });
       // Write page to data object and CSV
-      for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+      for (const result of getAllLinks(searchResponse)) {
         if (globalDatabase[hashedKey].data.some(item => item.Link === result.link)) {
           console.log(`[${hashedKey}] URL already saved, skipped: ${result.link}`);
         } else {
