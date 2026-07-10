@@ -22,16 +22,23 @@ First, log in with your SerpApi account, which will save your API key to a `byli
 node src/cli.js -login
 ```
 
-Then run Byline with `-author` and `-site` options to create the link list:
+Then run Byline with `-author` and `-site` options to create the link list, with `-limit` set to 20 to use a maximum of 20 search credits:
 
 ```bash
-node src/cli.js -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20
+node src/cli.js -author "Corbin Davenport" -site howtogeek.com -limit 20
 ```
 
-You can create backups of links with [Monolith](https://github.com/Y2Z/monolith) installed:
+You can add more options, like `-filters` for excluding certain URL paths, or `-data` for picking a different CSV file location:
+
+```bash
+node src/cli.js -data "/Users/Corbin/Desktop/myarticles.csv" -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20
+```
+
+To create backups of your list, install [Monolith](https://github.com/Y2Z/monolith) and then use the `-backup` flag:
 
 ```bash
 node src/cli.js -backup
+node src/cli.js -backup -data "/Users/Corbin/Desktop/myarticles.csv"
 ```
 
 
