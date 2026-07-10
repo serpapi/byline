@@ -39,8 +39,8 @@ async function checkCmdExists(command) {
 
 /**
  * Runs a command in a child process as a Promise
- * @param {string} command The command to run and wait for completion
- * @param {aray} args The arguments to pass to the command
+ * @param {String} command The command to run and wait for completion
+ * @param {Array} args The arguments to pass to the command
  * @returns 
  */
 function runCommand(command, args) {
@@ -105,7 +105,7 @@ async function saveApiKey(pathToFile) {
 
 /**
  * Read or create the CSV database file, then save its contents to the globalData variable.
- * @param {obj} args The path to the file.
+ * @param {String} filePath The path to the file.
  */
 async function readDataFile(filePath) {
     try {
@@ -147,8 +147,8 @@ async function startBackup(args) {
     }
     // Read CSV file into globalData object
     let filePath;
-    if (args["data"]) {
-        filePath = path.resolve(args["data"]);
+    if (args["i"]) {
+        filePath = path.resolve(args["i"]);
     } else {
         filePath = path.resolve("data.csv");
     }
@@ -211,7 +211,10 @@ async function startSearch(args) {
         }
     }
     // Check for search filters
-    const searchFilters = (args?.filters?.split(",") || []);
+    let searchFilters = [];
+    if (args?.filters) {
+        searchFilters = args.filters.trim().split(",");
+    }
     // Show welcome message and account status
     let accountData;
     try {
@@ -223,8 +226,8 @@ async function startSearch(args) {
     console.log(`SerpAPI Byline - ${type()} ${release()} (${machine()})\n======\nAccount email: ${accountData["account_email"] || "Unknown"}\nRemaining searches: ${accountData["total_searches_left"] || "Unknown"}\nManage account: https://serpapi.com/dashboard\n======\n`);
     // Read CSV file into globalData object
     let filePath;
-    if (args["data"]) {
-        filePath = path.resolve(args["data"]);
+    if (args["i"]) {
+        filePath = path.resolve(args["i"]);
     } else {
         filePath = path.resolve("data.csv");
     }
