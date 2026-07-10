@@ -116,9 +116,9 @@ async function getSearchResults(settings) {
  */
 function writeAsFormatted(searchResult) {
     const response = {
-        "Website": (searchResult?.source || new URL(searchResult?.link).hostname),
-        "Title": searchResult.title,
-        "Link": searchResult.link,
+        "Website": (searchResult?.source || searchResult?.platform || new URL(searchResult?.link).hostname || ""),
+        "Title": (searchResult.title || ""),
+        "Link": (searchResult.link || ""),
         "Snippet": (searchResult?.snippet || ""),
         "Language": (searchResult?.about_this_result?.languages?.toString() || "")
     }
@@ -141,6 +141,11 @@ function writeAsFormatted(searchResult) {
             const amount = parseInt(searchResult.date);
             // Convert days to milliseconds: days * 24h * 60m * 60s * 1000ms
             publishedDate = new Date(currentDate.getTime() - (amount * 86400000));
+        } else if (searchResult.date.includes("month")) {
+            // Examples: 1 month ago, 2 months ago
+            const amount = parseInt(searchResult.date);
+            // Convert months to milliseconds: months * 30 days * 24h * 60m * 60s * 1000ms
+            publishedDate = new Date(currentDate.getTime() - (amount * 2592000000));
         } else {
             // Example: Dec 20, 2025
             publishedDate = new Date(searchResult.date);

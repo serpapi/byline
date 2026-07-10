@@ -130,7 +130,6 @@ async function switchPage(apiKey) {
             if (data?.status === "running") {
                 showLoading(data.message);
             } else if (data?.status === "done") {
-                // TODO: Make this a clickable download link
                 showDownload(data.download);
                 status = "done";
             }

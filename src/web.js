@@ -230,19 +230,19 @@ app.get("/api.json", async function (req, res) {
   globalDatabase[hashedKey].createdDate = Number(Date.now());
   globalDatabase[hashedKey].running = true;
   // Write first page to data object
-  for (const result in searchResponse["organic_results"]) {
-    if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-      console.log(`[${hashedKey}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+  for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+    if (globalDatabase[hashedKey].data.some(item => item.Link === result.link)) {
+      console.log(`[${hashedKey}] URL already saved, skipped: ${result.link}`);
     } else {
-      const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+      const formattedRow = writeAsFormatted(result);
       globalDatabase[hashedKey].data.push(formattedRow);
     }
-  }
+  };
   // Send loading status to front end
   responseData.status = "running";
   res.json(responseData);
   // Repeat API call for all remaining pages of search results
-  // TODO: Parse video card results, add error handling/wait period for each request
+  // TODO: Add error handling/wait period for each request
   if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
     let nextPageExists = searchResponse?.serpapi_pagination?.next;
     let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
@@ -254,14 +254,14 @@ app.get("/api.json", async function (req, res) {
         url: searchResponse.serpapi_pagination.next
       });
       // Write page to data object and CSV
-      for (const result in searchResponse["organic_results"]) {
-        if (globalDatabase[hashedKey].data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-          console.log(`[${hashedKey}] URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+      for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+        if (globalDatabase[hashedKey].data.some(item => item.Link === result.link)) {
+          console.log(`[${hashedKey}] URL already saved, skipped: ${result.link}`);
         } else {
-          const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+          const formattedRow = writeAsFormatted(result);
           globalDatabase[hashedKey].data.push(formattedRow);
         }
-      }
+      };
       // Update counter for remaining pages
       searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
     }

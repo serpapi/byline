@@ -182,7 +182,7 @@ async function startBackup(args) {
             console.log(`Created directory: ${thisDir}\nRunning monolith for: ${item.Link}`);
             const htmlFile = path.resolve(thisDir, "%title%.html");
             // Skip audio (-a) and video (-v) resources
-            await runCommand('monolith', [item["Link"], "-a", "-v", "-o", htmlFile]); 
+            await runCommand('monolith', [item["Link"], "-a", "-v", "-o", htmlFile]);
         } catch (err) {
             console.error(`Error saving ${item["Link"]}, skipping:`, err);
             continue;
@@ -257,17 +257,17 @@ async function startSearch(args) {
         process.exit();
     }
     // Write first page to data object and CSV
-    for (const result in searchResponse["organic_results"]) {
-        if (globalData.data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-            console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+    for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+        if (globalData.data.some(item => item.Link === result.link)) {
+            console.log(`URL already saved, skipped: ${result.link}`);
         } else {
-            const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+            const formattedRow = writeAsFormatted(result);
             globalData.data.push(formattedRow);
         }
-    }
+    };
     await writeToCsv(filePath, globalData);
     // Repeat API call for all remaining pages of search results
-    // TODO: Parse video card results, add error handling/wait period for each request
+    // TODO: Add error handling/wait period for each request
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
         let nextPageExists = searchResponse?.serpapi_pagination?.next;
         let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
@@ -280,11 +280,11 @@ async function startSearch(args) {
                 serpAccount: (accountData["account_email"] || "Unknown")
             });
             // Write page to data object and CSV
-            for (const result in searchResponse["organic_results"]) {
-                if (globalData.data.some(item => item.Link === searchResponse["organic_results"][result]["link"])) {
-                    console.log(`URL already saved, skipped: ${searchResponse["organic_results"][result]["link"]}`);
+            for (const result of [...(searchResponse?.organic_results || []), ...(searchResponse?.inline_videos || [])]) {
+                if (globalData.data.some(item => item.Link === result.link)) {
+                    console.log(`URL already saved, skipped: ${result.link}`);
                 } else {
-                    const formattedRow = writeAsFormatted(searchResponse["organic_results"][result]);
+                    const formattedRow = writeAsFormatted(result);
                     globalData.data.push(formattedRow);
                 }
             }
