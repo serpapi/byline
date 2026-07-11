@@ -17,7 +17,7 @@ You can change the port with `-port 80`.
 The web server can also run in Docker or another compatible container engine:
 
 ```bash
-docker build -t "byline:Dockerfile" .
+docker build -t "byline:main" .
 docker run -p 80:8080 -d --restart on-failure "byline:main"
 ```
 
