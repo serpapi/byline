@@ -10,6 +10,8 @@ const confirmMessageEl = document.getElementById("byline-estimate");
 const startBtn = document.getElementById("byline-start-btn");
 const downloadEl = document.getElementById("byline-download");
 const downloadBtn = document.getElementById("byline-download-btn");
+const startDateClearBtn = document.getElementById("byline-clear-start-date-btn");
+const endDateClearBtn = document.getElementById("byline-clear-end-date-btn");
 
 // Form values
 const apiField = document.getElementById("byline-apikey");
@@ -17,6 +19,8 @@ const authorField = document.getElementById("byline-author");
 const websiteField = document.getElementById("byline-website");
 const limitField = document.getElementById("byline-limit");
 const filtersField = document.getElementById("byline-filters");
+const startDateField = document.getElementById("byline-start-date");
+const endDateField = document.getElementById("byline-end-date");
 const confirmCheck = document.getElementById("byline-confirm-check");
 
 // Automatically save all text/number field values to localStorage
@@ -52,6 +56,10 @@ function showError(message) {
     limitField.removeAttribute("disabled");
     filtersField.removeAttribute("disabled");
     startBtn.removeAttribute("disabled");
+    startDateField.removeAttribute("disabled");
+    endDateField.removeAttribute("disabled");
+    startDateClearBtn.removeAttribute("disabled");
+    endDateClearBtn.removeAttribute("disabled");
 }
 
 /**
@@ -76,6 +84,10 @@ function showLoading(message = null) {
     limitField.setAttribute("disabled", "true");
     filtersField.setAttribute("disabled", "true");
     startBtn.setAttribute("disabled", "true");
+    startDateField.setAttribute("disabled", "true");
+    endDateField.setAttribute("disabled", "true");
+    startDateClearBtn.setAttribute("disabled", "true");
+    endDateClearBtn.setAttribute("disabled", "true");
     // Show loading element
     loadingEl.classList.remove("d-none");
 }
@@ -97,6 +109,10 @@ function showConfirmation(message) {
     websiteField.setAttribute("disabled", "true");
     limitField.setAttribute("disabled", "true");
     filtersField.setAttribute("disabled", "true");
+    startDateField.setAttribute("disabled", "true");
+    endDateField.setAttribute("disabled", "true");
+    startDateClearBtn.setAttribute("disabled", "true");
+    endDateClearBtn.setAttribute("disabled", "true");
     // Enable start button again
     startBtn.removeAttribute("disabled");
     // Show confirmation element
@@ -140,6 +156,18 @@ async function switchPage(apiKey) {
     }
 }
 
+// Clear start date button
+startDateClearBtn.addEventListener("click", function () {
+    startDateField.value = "";
+    localStorage.setItem(startDateField.id, startDateField.value);
+})
+
+// Clear end date button
+endDateClearBtn.addEventListener("click", function () {
+    endDateField.value = "";
+    localStorage.setItem(endDateField.id, endDateField.value);
+})
+
 // Delete button
 document.getElementById("byline-confirm-delete").addEventListener("click", async function () {
     // Create request for server
@@ -161,7 +189,7 @@ document.getElementById("byline-confirm-delete").addEventListener("click", async
 });
 
 // Start over button
-document.getElementById("byline-start-over-btn").addEventListener("click", function() {
+document.getElementById("byline-start-over-btn").addEventListener("click", function () {
     location.reload();
 })
 
@@ -177,6 +205,8 @@ startBtn.addEventListener("click", async function () {
         website: websiteField.value,
         limit: limitField.value,
         filters: filtersField.value,
+        start_date: startDateField.value,
+        end_date: endDateField.value,
         confirm: confirmCheck.checked
     });
     const url = new URL(`${hostname}/api.json`);

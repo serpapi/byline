@@ -54,6 +54,20 @@ function hashKey(key) {
 }
 
 /**
+ * Converts an HTML date picker value into the US-like date format used by Google's "tbs" parameter.
+ * @param {string} timestamp A string like "2026-01-15"
+ * @returns {string} A string like "1/15/2026"
+ */
+function getGoogleDateFormat(inputDate) {
+  if (inputDate) {
+    const [year, month, day] = inputDate.split('-');
+    return `${parseInt(month)}/${parseInt(day)}/${year}`;
+  } else {
+    return "";
+  }
+}
+
+/**
  * Function to delete items more than 24 hours old from global database and storage.
  */
 async function cleanupDatabase() {
@@ -201,6 +215,8 @@ app.get("/api.json", async function (req, res) {
     filters: searchFilters,
     apiKey: req.query.api_key,
     engine: "google",
+    startDate: getGoogleDateFormat(req.query?.start_date),
+    endDate: getGoogleDateFormat(req.query?.end_date),
     serpAccount: hashedKey
   });
   if (searchResponse?.error) {

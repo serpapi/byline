@@ -109,20 +109,38 @@
                     </div>
                 </div>
                 <!-- Pagination limit -->
-                 <div class="mb-3">
+                <div class="mb-3">
                     <label for="byline-limit" class="form-label">Maximum number of pages</label>
                     <input type="number" class="form-control" id="byline-limit" placeholder="20" aria-describedby="byline-limit-help" inputmode="url">
                     <div id="byline-limit-help" class="form-text">
-                        The maximum number of Google search result pages that will be loaded. Each page consumes one SerpApi search credit, unless a recent cache is available.
+                        The maximum number of Google Search pages that will be loaded. Each page consumes one SerpApi search credit, unless a recent cache is available.
                     </div>
                 </div>
                 <!-- URL filters -->
-                <div>
+                <div class="mb-3">
                     <label for="byline-filters" class="form-label">URL Filters</label>
                     <input type="text" class="form-control" id="byline-filters" placeholder="/tags/,/archive/" aria-describedby="byline-filters-help">
                     <div id="byline-filters-help" class="form-text">
                         URLs containing these strings will be skipped. The list should be comma-separated.
                     </div>
+                </div>
+                <!-- Start date filter -->
+                <label for="byline-start-date" class="form-label">Start date for results</label>
+                <div class="input-group">
+                    <input id="byline-start-date" class="form-control" type="date" aria-describedby="byline-start-date-help" />
+                    <button class="btn btn-outline-secondary" type="button" id="byline-clear-start-date-btn">Clear</button>
+                </div>
+                <div id="byline-start-date-help" class="form-text mb-3">
+                    This is like the "From" date in Google Search's Custom date range feature, or the "after:" search operator. Leave it blank (or click the Clear button) to fetch results from any point in the past.
+                </div>
+                <!-- End date filter -->
+                <label for="byline-end-date" class="form-label">End date for results</label>
+                <div class="input-group">
+                    <input id="byline-end-date" class="form-control" type="date" aria-describedby="byline-end-date-help" />
+                    <button class="btn btn-outline-secondary" type="button" id="byline-clear-end-date-btn">Clear</button>
+                </div>
+                <div id="byline-end-date-help" class="form-text">
+                    This is like the "To" date in Google Search's Custom date range feature, or the "before:" search operator. Leave it blank (or click the Clear button) to fetch results from any point in the future.
                 </div>
             </div>
         </div>

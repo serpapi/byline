@@ -48,7 +48,6 @@ async function getAccountInfo(api_key) {
 async function getSearchResults(settings) {
     let response = {};
     // Create base SerpApi API call
-    // Some values are not used for all engines, SerpApi ignores the ones that aren't needed
     let apiReq = {
         engine: settings.engine,
         hl: "en",
@@ -65,12 +64,8 @@ async function getSearchResults(settings) {
         // Bing, Yahoo, DuckDuckGo, etc will return zero results if more than one filter is defined
         query += ` -inurl:${settings.filters[0]}`;
     }
-    // Set query parameter depending on search engine
-    if (settings.engine === "yahoo") {
-        apiReq.p = query;
-    } else {
-        apiReq.q = query;
-    }
+    // Set query as "p" parameter for Yahoo engine, or "q" for all other engines
+    settings.engine === "yahoo" ? (apiReq.p = query) : (apiReq.q = query);
     // Set date filter if requested
     if (settings?.startDate || settings?.endDate) {
         let tbsParam = "cdr:1"
