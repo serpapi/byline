@@ -160,37 +160,44 @@ function writeAsFormatted(searchResult) {
         }
     }
     // Set formatted date strings
+    let initDate;
     if (searchResult?.date) {
-        let publishedDate;
+        initDate = searchResult.date;
+    } else if (searchResult?.displayed_link) {
+        // Date might be after the site name, like this: "https://www.example.com · Feb 9, 2026"
+        initDate = searchResult.displayed_link.split(" · ")[1];
+    }
+    if (initDate) {
+        let parsedDate;
         let currentDate = new Date();
-        if (searchResult.date.includes("minute")) {
+        if (initDate.includes("minute")) {
             // Examples: 28 minutes ago, 1 minute ago
-            const amount = parseInt(searchResult.date);
+            const amount = parseInt(initDate);
             // Convert minutes to milliseconds: minutes * 60s * 60m * 1000ms
-            publishedDate = new Date(currentDate.getTime() - (amount * 60000));
-        } else if (searchResult.date.includes("hour")) {
+            parsedDate = new Date(currentDate.getTime() - (amount * 60000));
+        } else if (initDate.includes("hour")) {
             // Examples: 4 hours ago, 1 hour ago
-            const amount = parseInt(searchResult.date);
+            const amount = parseInt(initDate);
             // Convert hours to milliseconds: hours * 60m * 60s * 1000ms
-            publishedDate = new Date(currentDate.getTime() - (amount * 3600000));
-        } else if (searchResult.date.includes("day")) {
+            parsedDate = new Date(currentDate.getTime() - (amount * 3600000));
+        } else if (initDate.includes("day")) {
             // Examples: 6 days ago, 1 day ago
-            const amount = parseInt(searchResult.date);
+            const amount = parseInt(initDate);
             // Convert days to milliseconds: days * 24h * 60m * 60s * 1000ms
-            publishedDate = new Date(currentDate.getTime() - (amount * 86400000));
-        } else if (searchResult.date.includes("month")) {
+            parsedDate = new Date(currentDate.getTime() - (amount * 86400000));
+        } else if (initDate.includes("month")) {
             // Examples: 1 month ago, 2 months ago
-            const amount = parseInt(searchResult.date);
+            const amount = parseInt(initDate);
             // Convert months to milliseconds: months * 30 days * 24h * 60m * 60s * 1000ms
-            publishedDate = new Date(currentDate.getTime() - (amount * 2592000000));
+            parsedDate = new Date(currentDate.getTime() - (amount * 2592000000));
         } else {
             // Example: Dec 20, 2025
-            publishedDate = new Date(searchResult.date);
+            parsedDate = new Date(initDate);
         }
         // Add international date format for best Excel compatibility, like "2023-10-27"
-        response["Date (Formatted)"] = new Intl.DateTimeFormat('en-CA').format(publishedDate);
+        response["Date (Formatted)"] = new Intl.DateTimeFormat('en-CA').format(parsedDate);
         // Add ISO 8601 date format for parsing with other tools, like "2023-10-27T14:30:00.000Z"
-        response["Date (ISO)"] = publishedDate.toISOString();
+        response["Date (ISO)"] = parsedDate.toISOString();
     }
     return response;
 }
