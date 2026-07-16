@@ -1,8 +1,10 @@
-# byline
+# Byline
 
 Find and save your articles from across the web.
 
 **This is still early in development!**
+
+![Screenshot of Byline in a web browser and Terminal application](screen.png)
 
 ### Using The Web App
 
