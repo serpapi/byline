@@ -38,7 +38,7 @@ node src/cli.js -author "Corbin Davenport" -site howtogeek.com -limit 20
 You can add more options, like `-filters` for excluding certain URL paths, or `-i` for picking a different CSV file for the input:
 
 ```bash
-node src/cli.js -i "/Users/Corbin/Desktop/myarticles.csv" -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20
+node src/cli.js -i "/Users/Corbin/Desktop/myarticles.csv" -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20 -start "1/5/2024" -end "2/6/2026"
 ```
 
 To create backups of your list, install [Monolith](https://github.com/Y2Z/monolith) and then use the `-backup` flag:

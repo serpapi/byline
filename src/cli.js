@@ -234,11 +234,13 @@ async function startSearch(args) {
     await readDataFile(filePath);
     // Run first search
     let searchResponse = await getSearchResults({
-        author: args['author'].trim(),
-        site: args["site"].trim(),
+        author: args.author.trim(),
+        site: args.site.trim(),
         filters: searchFilters,
         apiKey: globalApiKey,
         engine: "google",
+        startDate: args?.start,
+        endDate: args?.end,
         serpAccount: (accountData["account_email"] || "Unknown")
     });
     if (searchResponse?.error) {

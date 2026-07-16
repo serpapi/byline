@@ -40,11 +40,22 @@ async function getAccountInfo(api_key) {
  * @param {string} settings.site The site to search.
  * @param {Array} settings.filters The list of strings to ignore in the URL path. Engines besides Google will only use the first filter.
  * @param {string} settings.engine The search engine to use.
+ * @param {string} settings.startDate If present, this will be the start of a custom date range for search.
+ * @param {string} settings.endDate If present, this will the end of a custom date range for search.
  * @param {string} settings.url If present, this URL will be used for the API call instead of other settings.
  * @returns {object} The JSON response from SerpApi.
  */
 async function getSearchResults(settings) {
     let response = {};
+    // Create base SerpApi API call
+    // Some values are not used for all engines, SerpApi ignores the ones that aren't needed
+    let apiReq = {
+        engine: settings.engine,
+        hl: "en",
+        mkt: "en-US",
+        filter: 0,
+        api_key: settings.apiKey
+    };
     // Create search string
     let query = `"${settings.author}" site:${settings.site}`;
     if (settings?.filters?.length && (settings.engine === "google" || settings.engine === "google_light")) {
@@ -54,24 +65,28 @@ async function getSearchResults(settings) {
         // Bing, Yahoo, DuckDuckGo, etc will return zero results if more than one filter is defined
         query += ` -inurl:${settings.filters[0]}`;
     }
+    // Set query parameter depending on search engine
+    if (settings.engine === "yahoo") {
+        apiReq.p = query;
+    } else {
+        apiReq.q = query;
+    }
+    // Set date filter if requested
+    if (settings?.startDate || settings?.endDate) {
+        let tbsParam = "cdr:1"
+        tbsParam += settings?.startDate ? `,cd_min:${settings.startDate}` : "";
+        tbsParam += settings?.endDate ? `,cd_max:${settings.endDate}` : "";
+        apiReq.tbs = tbsParam;
+    }
     // Create URL for API call
     let url;
     if (settings.url) {
         url = new URL(settings.url);
         url.searchParams.set("api_key", settings.apiKey);
     } else {
-        // Some values are not used for all engines, SerpApi ignores the ones that aren't needed
-        const options = new URLSearchParams({
-            engine: settings.engine,
-            hl: "en",
-            mkt: "en-US",
-            p: query,
-            q: query,
-            filter: 0,
-            api_key: settings.apiKey
-        });
-        url = ("https://serpapi.com/search?" + options);
-        console.log(`[${settings?.serpAccount || "Unknown account"}] Searching ${settings.engine} with query: ${query}`);
+        const params = new URLSearchParams(apiReq);
+        url = ("https://serpapi.com/search?" + params);
+        console.log(`[${settings?.serpAccount || "Unknown account"}] Searching ${apiReq.engine} with query: ${query} (tbs: ${apiReq?.tbs || "not set"})`);
     }
     // Make API call
     try {
@@ -102,7 +117,7 @@ async function getSearchResults(settings) {
             response.byline_estimate = `Found ${firstPageResults} results and no more pages.`;
         } else {
             // There are no results
-            response.error = response.error || `No results were found with the ${searchEngine} engine.`;
+            response.error = response.error || `No results were found with the ${settings.searchEngine} engine.`;
         }
     }
     // Send result
