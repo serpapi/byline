@@ -1,56 +1,123 @@
 # Byline
 
-Find and save your articles from across the web.
+Byline is a web application and command-line utility for finding your published articles, blog posts, and other published work across the web. It uses Google Search results through [SerpApi](https://serpapi.com/) to create a spreadsheet with links, titles, dates, and other metadata, ready for use in Google Docs, Microsoft Excel, and other software.
 
-**This is still early in development!**
+Byline's command-line version can use [Monolith](https://crates.io/crates/monolith) to create offline HTML backups of your published work. You can also use the spreadsheet with other backup solutions, like [ArchiveBox](https://archivebox.io/).
 
 ![Screenshot of Byline in a web browser and Terminal application](screen.png)
 
-### Using The Web App
+## How to use the web app
 
-Start the web server:
+Coming soon!
+
+## How to install the CLI app
+
+Byline works on Windows, macOS, and Linux with the Node.js runtime.
+
+### Windows
+
+Press the `Win + X` keyboard shortcut, and select Windows PowerShell (Admin) or Terminal (Admin). Next, copy the below command, paste it into the window (Ctrl+V), and press the Enter/Return key:
+
+```ps
+winget install -e --id OpenJS.NodeJS.LTS
+```
+
+Open a new PowerShell Admin window or Terminal tab, then run this command:
+
+```sh
+npm install -g serpapi-byline
+```
+
+You can run `byline -help` to verify Byline is installed.
+
+### Linux
+
+The process for installing Node.js and NPM varies by distribution. Here's how to do it on Ubuntu-like distros:
+
+```sh
+sudo apt install nodejs npm
+```
+
+Then, install Byline from NPM:
+
+```sh
+npm install -g serpapi-byline
+```
+
+You can run `byline -help` to verify Byline is installed.
+
+### macOS
+
+Install the [Homebrew package manager](https://brew.sh), then open a new Terminal window/tab and run this command to install Node.js and NPM:
 
 ```
-node src/web.js
+brew install node
 ```
 
-You can change the port with `-port 80`.
+Then, install Byline from NPM:
 
-The web server can also run in Docker or another compatible container engine:
+```sh
+npm install -g serpapi-byline
+```
+
+You can run `byline -help` to verify Byline is installed.
+
+## How to use the CLI app
+
+You need to [register for a free SerpApi account](https://serpapi.com/users/sign_up) to use Byline.
+
+First, open the Terminal or PowerShell again, and set the folder to store the spreadsheets and (optionally) article backups. You could use the Desktop folder with this command:
+
+```shell
+cd ~/Desktop
+```
+
+Next, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file in your current folder:
 
 ```bash
-docker build -t "byline:main" .
-docker run -p 80:8080 -d --restart on-failure "byline:main"
-```
-
-### Using The CLI Application
-
-First, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file:
-
-```bash
-node src/cli.js -login
+byline -login
 ```
 
 Then run Byline with `-author` and `-site` options to create the link list, with `-limit` set to 20 to use a maximum of 20 search credits:
 
 ```bash
-node src/cli.js -author "Corbin Davenport" -site howtogeek.com -limit 20
+byline -author "Corbin Davenport" -site howtogeek.com -limit 20
 ```
 
-You can add more options, like `-filters` for excluding certain URL paths, or `-i` for picking a different CSV file for the input:
+This will create a file called `data.csv` in your folder containing all links. You can open and edit it in [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel), [Apple Numbers](https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891), [LibreOffice](https://www.libreoffice.org/download/), [Google Docs](https://docs.google.com/), and other spreadsheet applications.
 
-```bash
-node src/cli.js -i "/Users/Corbin/Desktop/myarticles.csv" -author "Corbin Davenport" -site howtogeek.com -filters "/archive/,/tag/,/category/" -limit 20 -start "1/5/2024" -end "2/6/2026"
+Run `byline -help` to see more options, like URL and publish date filters.
+
+## How to back up links with the CLI app
+
+Byline needs [Monolith](https://github.com/Y2Z/monolith) installed to create HTML backups of links from the CSV file.
+
+**Install Monolith on Windows:** Press the `Win + X` keyboard shortcut, and select Windows PowerShell (Admin) or Terminal (Admin), and run this command:
+
+```ps
+winget install --id=Y2Z.Monolith -e
 ```
 
-To create backups of your list, install [Monolith](https://github.com/Y2Z/monolith) and then use the `-backup` flag:
+**Install Monolith on macOS:** With [Homebrew](https://brew.sh/) installed, open the Terminal application and run this command:
 
-```bash
-node src/cli.js -backup
-node src/cli.js -i "/Users/Corbin/Desktop/myarticles.csv" -backup
+```sh
+brew install monolith
 ```
 
+**Install Monolith on Linux:** Check the [Monolith README](https://crates.io/crates/monolith) for installation options.
 
-### Advanced Usage
+Next, switch to the folder containing your `data.csv` file and API key, like this:
 
-Byline can read an API key from the `SERPAPI_KEY` environment variable. If the environment variable exists, the `byline-settings.txt` file will not be used.
+```sh
+cd ~/Desktop
+```
+
+Finally, start the backup:
+
+```
+byline -backup
+```
+
+## Feature suggestions & bug reports
+
+Found a bug that needs fixing? Have an idea for a feature? Check the [issues page](https://github.com/serpapi/byline/issues) first, and if it's not there, please create a new issue!

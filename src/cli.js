@@ -78,7 +78,30 @@ async function askUser(query) {
  * Show help information in the console.
  */
 function showHelp() {
-    console.log("Help is not implemented yet!");
+    const helpMessage = `Usage: byline [options...]
+
+REQUIRED OPTIONS:
+-author "name"          Full name that appears on published work
+-site "example.com"     Web domain to search
+
+MORE OPTIONS:
+-backup                 Back up articles from CSV file with Monolith
+-i "/path/to/data.csv"  Path for CSV file instead of ./data.csv
+-filters "/tag/,"/cat/" URLs containing these strings will be skipped
+-limit 20               Maximum number of search results pages to load
+-start "1/5/2024"       Search only for items published after this date
+-end "2/6/2026"         Search only for items published before this date
+-login                  Save API key from SerpApi
+
+Dates for -start and -end must be formatted in US style (M/D/YYYY).
+
+Monolith must be installed for HTML backups:
+https://crates.io/crates/monolith
+
+More information about Byline:
+https://github.com/serpapi/byline
+`;
+    console.log(helpMessage);
 }
 
 /**
@@ -98,7 +121,7 @@ async function writeToCsv(filePath, obj) {
  */
 async function saveApiKey(pathToFile) {
     const apiKey = await askUser("Paste your API key from the https://serpapi.com/manage-api-key page:");
-    await fs.writeFile(pathToFile, `SERPAPI_KEY=${apiKey}`);
+    await fs.writeFile(pathToFile, `SERPAPI_KEY=${apiKey}\nINFO=DO NOT SHARE THIS FILE!`);
     console.log(`Saved API key to ${pathToFile}`);
     return apiKey;
 }

@@ -1,9 +1,10 @@
 {
   "name": "serpapi-byline",
   "version": "0.1",
-  "description": "Find and save your articles from across the web",
+  "description": "Find and save your articles from across the web.",
   "keywords": [
-    "serpapi"
+    "serpapi",
+    "article backup"
   ],
   "homepage": "https://github.com/serpapi/byline#readme",
   "bugs": {
