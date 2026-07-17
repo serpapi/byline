@@ -1,0 +1,20 @@
+# New files in this should probably be added to .gitignore as well!
+
+# Byline data files
+*byline-settings.txt
+backup/*
+*.csv
+
+# Node and NPM files
+node_modules
+.npmrc
+.npm
+
+# Junk system files
+.DS_Store
+
+# Files not needed in NPM package
+DEV.md
+screen.png
+Dockerfile
+.dockerignore

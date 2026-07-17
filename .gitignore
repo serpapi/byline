@@ -1,6 +1,14 @@
-node_modules
-*.csv
-.DS_Store
-.env
+# New files in this should probably be added to .npmignore as well!
+
+# Byline data files
 *byline-settings.txt
 backup/*
+*.csv
+
+# Node and NPM files
+node_modules
+.npmrc
+.npm
+
+# Junk system files
+.DS_Store

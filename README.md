@@ -6,6 +6,8 @@ Byline's command-line version can use [Monolith](https://crates.io/crates/monoli
 
 ![Screenshot of Byline in a web browser and Terminal application](screen.png)
 
+![Byline NPM version](https://img.shields.io/npm/v/serpapi-byline) ![Byline download count](https://img.shields.io/npm/d18m/serpapi-byline)
+
 ## How to use the web app
 
 Coming soon!
