@@ -87,7 +87,7 @@ REQUIRED OPTIONS:
 MORE OPTIONS:
 -backup                 Back up articles from CSV file with Monolith
 -i "/path/to/data.csv"  Path for CSV file instead of ./data.csv
--filters "/tag/,"/cat/" URLs containing these strings will be skipped
+-filters "/tag/,/cat/"  URLs containing these strings will be skipped
 -limit 20               Maximum number of search results pages to load
 -start "1/5/2024"       Search only for items published after this date
 -end "2/6/2026"         Search only for items published before this date

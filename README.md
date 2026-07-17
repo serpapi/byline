@@ -8,11 +8,13 @@ Byline's command-line version can use [Monolith](https://crates.io/crates/monoli
 
 ![Byline NPM version](https://img.shields.io/npm/v/serpapi-byline) ![Byline download count](https://img.shields.io/npm/d18m/serpapi-byline)
 
-## How to use the web app
+## Try the web app
 
-Coming soon!
+**Hosted version coming soon!**
 
-## How to install the CLI app
+The web app does not currently support [importing existing CSV files](https://github.com/serpapi/byline/issues/4) or [backing up links with Monolith](https://github.com/serpapi/byline/issues/3). You have to install Byline and use the CLI app for those features.
+
+## How to install Byline
 
 Byline works on Windows, macOS, and Linux with the Node.js runtime.
 
@@ -119,6 +121,27 @@ Finally, start the backup:
 ```
 byline -backup
 ```
+
+## How to run the web app
+
+You can start the web server with the `byline-web` command, and optionally specify a port:
+
+```
+byline-web -port 80
+```
+
+The web server can also run in [Docker](https://docs.docker.com/engine/install/) or another compatible container engine:
+
+```bash
+docker build -t "byline:main" .
+docker run -p 80:8080 -d --restart on-failure "byline:main"
+```
+
+## Advanced usage
+
+The Byline CLI application can read an API key from the `SERPAPI_KEY` environment variable. If the environment variable exists, the `byline-settings.txt` file will not be used.
+
+If you want to run Byline from the checked out repository instead of the NPM package, use `node src/cli.js` instead of `byline` and `node src/web.js` instead of `byline-web`.
 
 ## Feature suggestions & bug reports
 
