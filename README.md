@@ -88,7 +88,7 @@ Then run Byline with `-author` and `-site` options to create the link list, with
 byline -author "Firstname Lastname" -site example.com -limit 20
 ```
 
-This will create a file called `data.csv` in your folder containing all links. You can open and edit it in [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel), [Apple Numbers](https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891), [LibreOffice](https://www.libreoffice.org/download/), [Google Docs](https://docs.google.com/), and other spreadsheet applications. If you run Byline again in the same directory, new entries will be added to the same CSV file.
+This will create a file called `data.csv` in your folder containing all links. You can open and edit it in [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel), [Apple Numbers](https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891), [LibreOffice Calc](https://www.libreoffice.org/download/), [Google Sheets](https://docs.google.com/spreadsheets/), and other spreadsheet applications. If you run Byline again in the same directory, new entries will be added to the same CSV file.
 
 Run `byline -help` to see more options, like URL and publish date filters.
 

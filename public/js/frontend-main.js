@@ -121,7 +121,7 @@ function showConfirmation(message) {
 
 function showDownload(path) {
     // Set download link and file name
-    downloadBtn.setAttribute("download", "Byline Export - " + authorField.value);
+    downloadBtn.setAttribute("download", `Byline Export - ${authorField.value} (${websiteField.value}).csv`);
     downloadBtn.setAttribute("href", path);
     // Show download alert and hide all other alerts
     errorEl.classList.add("d-none");

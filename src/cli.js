@@ -322,7 +322,7 @@ async function startSearch(args) {
         }
     }
     // Exit
-    console.log(`Save complete with ${searchResponse?.serpapi_pagination?.current} pages!`);
+    console.log(`\nSave complete with ${searchResponse?.serpapi_pagination?.current} pages: ${filePath}\n\nYou can open this file with Google Sheets, LibreOffice Calc, and other spreadsheet applications.\n`);
     process.exit();
 }
 
