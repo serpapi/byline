@@ -72,23 +72,23 @@ You need to [register for a free SerpApi account](https://serpapi.com/users/sign
 
 First, open the Terminal or PowerShell again, and set the folder to store the spreadsheets and (optionally) article backups. You could use the Desktop folder with this command:
 
-```shell
+```sh
 cd ~/Desktop
 ```
 
 Next, log in with your SerpApi account, which will save your API key to a `byline-settings.txt` file in your current folder:
 
-```bash
+```sh
 byline -login
 ```
 
 Then run Byline with `-author` and `-site` options to create the link list, with `-limit` set to 20 to use a maximum of 20 search credits:
 
-```bash
-byline -author "Corbin Davenport" -site howtogeek.com -limit 20
+```sh
+byline -author "Firstname Lastname" -site example.com -limit 20
 ```
 
-This will create a file called `data.csv` in your folder containing all links. You can open and edit it in [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel), [Apple Numbers](https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891), [LibreOffice](https://www.libreoffice.org/download/), [Google Docs](https://docs.google.com/), and other spreadsheet applications.
+This will create a file called `data.csv` in your folder containing all links. You can open and edit it in [Microsoft Excel](https://www.microsoft.com/en-us/microsoft-365/excel), [Apple Numbers](https://apps.apple.com/us/app/numbers-make-spreadsheets/id361304891), [LibreOffice](https://www.libreoffice.org/download/), [Google Docs](https://docs.google.com/), and other spreadsheet applications. If you run Byline again in the same directory, new entries will be added to the same CSV file.
 
 Run `byline -help` to see more options, like URL and publish date filters.
 
@@ -118,7 +118,7 @@ cd ~/Desktop
 
 Finally, start the backup:
 
-```
+```sh
 byline -backup
 ```
 
@@ -126,15 +126,23 @@ byline -backup
 
 You can start the web server with the `byline-web` command, and optionally specify a port:
 
-```
+```sh
 byline-web -port 80
 ```
 
 The web server can also run in [Docker](https://docs.docker.com/engine/install/) or another compatible container engine:
 
-```bash
+```sh
 docker build -t "byline:main" .
 docker run -p 80:8080 -d --restart on-failure "byline:main"
+```
+
+## How to update Byline
+
+Run this command to install the latest version from NPM:
+
+```sh
+npm update -g serpapi-byline
 ```
 
 ## Advanced usage
