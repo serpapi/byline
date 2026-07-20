@@ -14,7 +14,8 @@ node_modules
 .DS_Store
 
 # Files not needed in NPM package
-DEV.md
 screen.png
 Dockerfile
 .dockerignore
+logo_minimal.svg
+logo.svg
