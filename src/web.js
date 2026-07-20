@@ -286,13 +286,15 @@ app.get("/api.json", async function (req, res) {
   const exportFile = `${hashedKey}.csv`;
   const exportPath = path.resolve(tmpFilesDir, exportFile);
   const csvExport = Papa.unparse(globalDatabase[hashedKey], papaParseOptions);
+  const nowDate = Date.now();
   await fs.writeFile(path.resolve(exportPath), csvExport);
   console.log(`[${hashedKey}] Finished search with ${searchResponse?.serpapi_pagination?.current} pages.`);
   // Update database entry
   globalDatabase[hashedKey] = {
     done: true,
     download: `/tmp/${exportFile}`,
-    fullPath: exportPath
+    fullPath: exportPath,
+    createdDate: nowDate
   };
 });
 
