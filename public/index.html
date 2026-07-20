@@ -44,8 +44,11 @@
     </nav>
     <!-- Main container -->
     <div class="container">
-        <div class="display-6 text-center pt-4 pt-md-5 w-100">
-            <h3>Find your published work from across the web.</h3>
+        <h3 class="display-6 text-center pt-4 pt-md-5 w-100">
+            Find your published work, across the web
+        </h3>
+        <div class="text-center">
+            Powered by <a href="https://serpapi.com/" target="_blank">SerpApi</a>
         </div>
         <!-- Search button -->
         <div class="text-center py-3 py-md-5 w-100">
@@ -145,9 +148,16 @@
                 </div>
             </div>
         </div>
+        <!-- Privacy information -->
+        <div class="card mb-3 mb-md-4">
+            <div class="card-body">
+                <h5 class="card-title">Terms & Privacy</h5>
+                <p class="card-text">Usage of this web app falls under the <a href="https://serpapi.com/legal" target="_blank">SerpApi Terms of Service</a>. Your API key is not stored on this server, only a SHA-256 hashed version.</p>
+            </div>
+        </div>
     </div>
 
-    <!-- Modal -->
+    <!-- New search modal -->
     <div class="modal fade" id="newSearchModal" tabindex="-1" aria-labelledby="newSearchModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">

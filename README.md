@@ -1,6 +1,6 @@
 # Byline
 
-Byline is a web application and command-line utility for finding your published articles, blog posts, and other published work across the web. It uses Google Search results through [SerpApi](https://serpapi.com/) to create a spreadsheet with links, titles, dates, and other metadata, ready for use in Google Docs, Microsoft Excel, and other software.
+Byline is a web application and command-line utility for finding your published articles, blog posts, and other published work across the web. It uses Google Search results through [SerpApi](https://serpapi.com/) to create a spreadsheet with links, titles, dates, and other metadata, ready for use in Google Sheets, Microsoft Excel, and other software.
 
 Byline's command-line version can use [Monolith](https://crates.io/crates/monolith) to create offline HTML backups of your published work. You can also use the spreadsheet with other backup solutions, like [ArchiveBox](https://archivebox.io/).
 
