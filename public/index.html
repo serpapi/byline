@@ -32,8 +32,17 @@
     <meta name="twitter:image" content="https://raw.githubusercontent.com/serpapi/byline/refs/heads/master/public/img/card.jpg">
     <meta property="og:image:width" content="1920">
     <meta property="og:image:height" content="1080">
-	<!-- RSS feeds -->
-	<link rel="alternate" type="application/rss+xml" title="Byline Releases" href="https://github.com/serpapi/byline/releases.atom">
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-2S15VLQNHR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'G-2S15VLQNHR');
+    </script>
+    <!-- RSS feeds -->
+    <link rel="alternate" type="application/rss+xml" title="Byline Releases" href="https://github.com/serpapi/byline/releases.atom">
     <!-- Bootstrap and custom styles -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
@@ -57,7 +66,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://github.com/serpapi/byline" target="_blank">
-                            Source code
+                            More information
                             <i class="bi bi-box-arrow-up-right mx-1"></i>
                         </a>
                     </li>
@@ -73,7 +82,7 @@
         <div class="text-center">
             Powered by <a href="https://serpapi.com/" target="_blank">SerpApi</a>
         </div>
-        <!-- Search button -->
+        <!-- Main buttons button -->
         <div class="text-center py-3 py-md-5 w-100">
             <button type="button" id="byline-start-btn" class="btn btn-lg btn-primary">Start web search</button>
         </div>
@@ -176,6 +185,7 @@
             <div class="card-body">
                 <h5 class="card-title">Terms & Privacy</h5>
                 <p class="card-text">Usage of this web app falls under the <a href="https://serpapi.com/legal" target="_blank">SerpApi Terms of Service</a>. Your API key is not stored on this server, only a SHA-256 hashed version.</p>
+                <p class="card-text">Byline also uses Google Analytics to track page views and basic visitor data, which is subject to <a href="https://policies.google.com/privacy?hl=en-US" target="_blank">Google's Privacy Policy & Terms</a>.</p>
             </div>
         </div>
     </div>
