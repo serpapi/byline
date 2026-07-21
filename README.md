@@ -10,7 +10,7 @@ Byline's command-line version can use [Monolith](https://crates.io/crates/monoli
 
 ## Try the web app
 
-**Hosted version coming soon!**
+**You can use Byline at [byline.apps.serpapi.com](https://byline.apps.serpapi.com/).** You can also host the web app on your own computer or server with the [self-host instructions](#how-to-host-the-web-app).
 
 The web app does not currently support [importing existing CSV files](https://github.com/serpapi/byline/issues/4) or [backing up links with Monolith](https://github.com/serpapi/byline/issues/3). You have to install Byline and use the CLI app for those features.
 
@@ -122,17 +122,19 @@ Finally, start the backup:
 byline -backup
 ```
 
-## How to run the web app
+## How to host the web app
 
-You can start the web server with the `byline-web` command, and optionally specify a port:
+After [installing the Byline package](#how-to-install-byline), you can start the web server with the `byline-web` command, and optionally specify a port:
 
 ```sh
-byline-web -port 80
+byline-web -port 8120
 ```
 
 The web server can also run in [Docker](https://docs.docker.com/engine/install/) or another compatible container engine:
 
 ```sh
+git clone git@github.com:serpapi/byline.git byline
+cd byline
 docker build -t "byline:main" .
 docker run -p 80:8080 -d --restart on-failure "byline:main"
 ```
