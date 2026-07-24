@@ -299,7 +299,6 @@ async function startSearch(args) {
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
         let nextPageExists = searchResponse?.serpapi_pagination?.next;
         let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
-        console.log(nextPageExists, searchStillAllowed)
         while (searchResponse?.serpapi_pagination?.next && searchStillAllowed) {
             console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
             // Fetch next page of search results
