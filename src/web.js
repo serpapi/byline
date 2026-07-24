@@ -237,7 +237,7 @@ app.get("/api.json", async function (req, res) {
     return;
   }
   // Set maximum pagination
-  let maxPagination = null;
+  let maxPagination = 1000000;
   if (req?.query?.limit && Number(req.query.limit)) {
     maxPagination = (Number(req.query.limit) - 1); // subtracted by 1, because one search was already completed
   }

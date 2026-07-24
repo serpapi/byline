@@ -272,7 +272,7 @@ async function startSearch(args) {
     }
     console.log(`${searchResponse.byline_estimate}\n`);
     // Set maximum pagination and warn user if one is not configured
-    let maxPagination = null;
+    let maxPagination = 1000000;
     if (args.limit && Number(args.limit)) {
         maxPagination = (Number(args.limit) - 1); // subtracted by 1, because one search was already completed
         console.log(`Search will end after ${Number(args.limit) - 1} more pages of results.\n`);
@@ -299,6 +299,7 @@ async function startSearch(args) {
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
         let nextPageExists = searchResponse?.serpapi_pagination?.next;
         let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
+        console.log(nextPageExists, searchStillAllowed)
         while (searchResponse?.serpapi_pagination?.next && searchStillAllowed) {
             console.log(`Finished page ${searchResponse.serpapi_pagination.current} with ${searchResponse.organic_results.length} results, starting next page...`);
             // Fetch next page of search results
