@@ -185,6 +185,11 @@ function writeAsFormatted(searchResult) {
             const amount = parseInt(initDate);
             // Convert days to milliseconds: days * 24h * 60m * 60s * 1000ms
             parsedDate = new Date(currentDate.getTime() - (amount * 86400000));
+        } else if (initDate.includes("week")) {
+            // Examples: 1 week ago, 3 weeks ago
+            const amount = parseInt(initDate);
+            // Convert weeks to milliseconds: weeks * 7 days * 24h * 60m * 60s * 1000ms
+            parsedDate = new Date(currentDate.getTime() - (amount * 604800000));
         } else if (initDate.includes("month")) {
             // Examples: 1 month ago, 2 months ago
             const amount = parseInt(initDate);
