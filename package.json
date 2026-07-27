@@ -1,10 +1,19 @@
 {
   "name": "serpapi-byline",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Find and save your articles from across the web.",
   "keywords": [
     "serpapi",
-    "article backup"
+    "backup",
+    "backups",
+    "blog",
+    "blogging",
+    "crawler",
+    "crawling",
+    "scraper",
+    "scraping",
+    "search",
+    "web search"
   ],
   "homepage": "https://github.com/serpapi/byline#readme",
   "bugs": {
@@ -23,7 +32,7 @@
   "type": "module",
   "main": "src/cli.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node src/cli.js -i './test-output.csv' -author 'Corbin Davenport' -site androidpolice.com -limit 3 -filters '/archive/,/tag/' -start '1/1/2018' -end '1/1/2019'"
   },
   "dependencies": {
     "express": "5.2.1",
