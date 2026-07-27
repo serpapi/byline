@@ -1,5 +1,7 @@
 // Functions shared across CLI and web frontend
 
+import { setTimeout } from 'node:timers/promises';
+
 // Blank CSV file template
 const csvTemplate = `"Website","Title","Date (Formatted)","Date (ISO)","Link","Snippet","Language"`;
 
@@ -83,21 +85,23 @@ async function getSearchResults(settings) {
         url = ("https://serpapi.com/search?" + params);
         console.log(`[${settings?.serpAccount || "Unknown account"}] Searching ${apiReq.engine} with query: ${query} (tbs: ${apiReq?.tbs || "not set"})`);
     }
-    // Make API call
-    try {
-        const serpResponse = await fetch(url);
-        if (serpResponse.ok) {
-            response = await serpResponse.json();
-        } else {
-            console.error(`Response status: ${serpResponse.status}`);
-            response.error = `There was a ${serpResponse.status} error.`;
-            return response;
+    // Make API call, and keep trying it until there's a response from the server
+    do {
+        try {
+            const serpResponse = await fetch(url);
+            if (serpResponse.ok) {
+                response = await serpResponse.json();
+            } else {
+                console.log(`[${settings?.serpAccount || "Unknown account"}] Received error ${serpResponse?.status || "Unknown"} from server, trying again in 30 seconds...`);
+                await setTimeout(30000);
+                continue;
+            }
+        } catch (error) {
+            console.log(`[${settings?.serpAccount || "Unknown account"}] Received error ${error}. Trying again in 30 seconds...`);
+            await setTimeout(30000);
+            continue;
         }
-    } catch (error) {
-        console.error(error);
-        response.error = error?.message;
-        return response;
-    }
+    } while (!("search_metadata" in response || "error" in response))
     // Add estimate for searches remaining, if this is the first search for the query
     if (!settings.url) {
         let returnData = {};

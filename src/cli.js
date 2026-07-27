@@ -295,7 +295,6 @@ async function startSearch(args) {
     };
     await writeToCsv(filePath, globalData);
     // Repeat API call for all remaining pages of search results
-    // TODO: Add error handling/wait period for each request
     if (searchResponse?.serpapi_pagination?.next && searchResponse?.serpapi_pagination?.current) {
         let nextPageExists = searchResponse?.serpapi_pagination?.next;
         let searchStillAllowed = (maxPagination && (maxPagination >= Number(searchResponse?.serpapi_pagination?.current)));
