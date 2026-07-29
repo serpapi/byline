@@ -32,6 +32,12 @@ Open a new PowerShell Admin window or Terminal tab, then run this command:
 npm install -g serpapi-byline
 ```
 
+If you get an error that running scripts is disabled, use this command to allow signed scripts, then try the install command again:
+
+```sh
+Set-ExecutionPolicy RemoteSigned
+```
+
 You can run `byline -help` to verify Byline is installed.
 
 ### Linux
