@@ -1,6 +1,6 @@
 {
   "name": "serpapi-byline",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Find and save your articles from across the web.",
   "keywords": [
     "serpapi",
@@ -13,7 +13,8 @@
     "scraper",
     "scraping",
     "search",
-    "web search"
+    "web search",
+    "csv"
   ],
   "homepage": "https://github.com/serpapi/byline#readme",
   "bugs": {
